@@ -1,18 +1,10 @@
 "use client";
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { 
-  BatteryCharging, 
-  Battery,
-  Plug,
-  Zap,
-  Play,
-  Pause
-} from "lucide-react";
+import { BatteryCharging, Battery, Plug, Zap, Play, Pause } from "lucide-react";
 import { MadeWithDyad } from "@/components/made-with-dyad";
 
 interface ChargingStation {
@@ -27,26 +19,51 @@ interface ChargingStation {
 }
 
 const chargingStations: ChargingStation[] = [
-  { id: 1, name: "Station Alpha", status: "charging", robotId: 3, robotName: "Robot Gamma", batteryLevel: 30, chargingRate: 85, timeRemaining: "12 min" },
-  { id: 2, name: "Station Beta", status: "available", status: "available" },
-  { id: 3, name: "Station Gamma", status: "offline", status: "offline" },
+  {
+    id: 1,
+    name: "Station Alpha",
+    status: "charging",
+    robotId: 3,
+    robotName: "Robot Gamma",
+    batteryLevel: 30,
+    chargingRate: 85,
+    timeRemaining: "12 min"
+  },
+  {
+    id: 2,
+    name: "Station Beta",
+    status: "available"
+  },
+  {
+    id: 3,
+    name: "Station Gamma",
+    status: "offline"
+  }
 ];
 
 const getStatusColor = (status: string) => {
   switch (status) {
-    case "available": return "bg-green-500";
-    case "charging": return "bg-blue-500";
-    case "offline": return "bg-red-500";
-    default: return "bg-gray-500";
+    case "available":
+      return "bg-green-500";
+    case "charging":
+      return "bg-blue-500";
+    case "offline":
+      return "bg-red-500";
+    default:
+      return "bg-gray-500";
   }
 };
 
 const getStatusText = (status: string) => {
   switch (status) {
-    case "available": return "Available";
-    case "charging": return "Charging";
-    case "offline": return "Offline";
-    default: return "Unknown";
+    case "available":
+      return "Available";
+    case "charging":
+      return "Charging";
+    case "offline":
+      return "Offline";
+    default:
+      return "Unknown";
   }
 };
 
@@ -62,7 +79,7 @@ export default function ChargingPage() {
             <p className="text-gray-600 mt-2">Monitor and control robot charging stations</p>
           </div>
           <div className="flex gap-2 mt-4 md:mt-0">
-            <Button 
+            <Button
               onClick={() => setIsChargingEnabled(!isChargingEnabled)}
               className={isChargingEnabled ? "bg-red-500 hover:bg-red-600" : "bg-green-500 hover:bg-green-600"}
             >
@@ -91,7 +108,6 @@ export default function ChargingPage() {
               </div>
             </div>
           </div>
-          
           <div className="lg:col-span-1 bg-white p-6 rounded-lg border">
             <div className="flex items-center">
               <div className="p-3 bg-green-100 rounded-full mr-4">
@@ -103,7 +119,6 @@ export default function ChargingPage() {
               </div>
             </div>
           </div>
-          
           <div className="lg:col-span-1 bg-white p-6 rounded-lg border">
             <div className="flex items-center">
               <div className="p-3 bg-purple-100 rounded-full mr-4">
@@ -123,8 +138,7 @@ export default function ChargingPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
-                  <BatteryCharging className="mr-2 h-5 w-5" />
-                  Charging Stations
+                  <BatteryCharging className="mr-2 h-5 w-5" /> Charging Stations
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -138,7 +152,6 @@ export default function ChargingPage() {
                           <p className="text-sm text-gray-500">{getStatusText(station.status)}</p>
                         </div>
                       </div>
-                      
                       <div className="flex items-center space-x-4">
                         {station.robotName && (
                           <div className="text-right">
@@ -146,7 +159,6 @@ export default function ChargingPage() {
                             <div className="text-sm text-gray-500">Robot</div>
                           </div>
                         )}
-                        
                         <Badge variant="outline" className="capitalize">
                           {station.status}
                         </Badge>
@@ -156,7 +168,7 @@ export default function ChargingPage() {
                 </div>
               </CardContent>
             </Card>
-            
+
             {/* Low Battery Robots */}
             <Card>
               <CardHeader>
@@ -180,7 +192,6 @@ export default function ChargingPage() {
                       <Button size="sm">Send to Charge</Button>
                     </div>
                   </div>
-                  
                   <div className="flex items-center justify-between p-3 border rounded-lg">
                     <div className="flex items-center space-x-3">
                       <Battery className="h-5 w-5 text-orange-500" />
@@ -201,7 +212,7 @@ export default function ChargingPage() {
               </CardContent>
             </Card>
           </div>
-          
+
           {/* Charging Details */}
           <div className="space-y-6">
             {/* Active Charging */}
@@ -216,7 +227,6 @@ export default function ChargingPage() {
                       <h3 className="font-medium">Robot Gamma</h3>
                       <Badge>Charging</Badge>
                     </div>
-                    
                     <div className="mb-3">
                       <div className="flex justify-between text-sm mb-1">
                         <span>Battery Level</span>
@@ -224,7 +234,6 @@ export default function ChargingPage() {
                       </div>
                       <Progress value={85} className="bg-blue-200" />
                     </div>
-                    
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div>
                         <div className="text-gray-500">Time Remaining</div>
@@ -236,7 +245,6 @@ export default function ChargingPage() {
                       </div>
                     </div>
                   </div>
-                  
                   <div className="grid grid-cols-2 gap-4">
                     <Button variant="outline">Pause Charging</Button>
                     <Button>Complete Early</Button>
@@ -244,7 +252,7 @@ export default function ChargingPage() {
                 </div>
               </CardContent>
             </Card>
-            
+
             {/* Charging Schedule */}
             <Card>
               <CardHeader>
@@ -259,7 +267,6 @@ export default function ChargingPage() {
                     </div>
                     <Badge variant="secondary">Pending</Badge>
                   </div>
-                  
                   <div className="flex items-center justify-between p-3 border rounded-lg">
                     <div>
                       <h3 className="font-medium">Robot Beta</h3>
@@ -267,7 +274,6 @@ export default function ChargingPage() {
                     </div>
                     <Badge variant="secondary">Pending</Badge>
                   </div>
-                  
                   <div className="flex items-center justify-between p-3 border rounded-lg">
                     <div>
                       <h3 className="font-medium">Robot Epsilon</h3>
@@ -278,7 +284,7 @@ export default function ChargingPage() {
                 </div>
               </CardContent>
             </Card>
-            
+
             {/* Charging Policies */}
             <Card>
               <CardHeader>
@@ -293,7 +299,6 @@ export default function ChargingPage() {
                       <p className="text-sm text-gray-500">Robots automatically charge when battery drops below 30%</p>
                     </div>
                   </div>
-                  
                   <div className="flex items-start">
                     <div className="h-2 w-2 rounded-full bg-blue-500 mt-2 mr-3"></div>
                     <div>
@@ -301,7 +306,6 @@ export default function ChargingPage() {
                       <p className="text-sm text-gray-500">Higher priority tasks get charging preference</p>
                     </div>
                   </div>
-                  
                   <div className="flex items-start">
                     <div className="h-2 w-2 rounded-full bg-purple-500 mt-2 mr-3"></div>
                     <div>
@@ -314,7 +318,6 @@ export default function ChargingPage() {
             </Card>
           </div>
         </div>
-
         <MadeWithDyad />
       </div>
     </div>
