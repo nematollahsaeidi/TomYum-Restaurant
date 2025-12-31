@@ -313,26 +313,47 @@ class TaskOverride(BaseModel):
     boost: int
     reason: str
 
-# Serve main pages
+# Serve main pages - catch-all route for SPA
+def get_html_content(filename):
+    try:
+        with open(f"frontend/{filename}", "r") as file:
+            return HTMLResponse(content=file.read())
+    except FileNotFoundError:
+        # If specific file not found, serve index.html for SPA routing
+        with open("frontend/index.html", "r") as file:
+            return HTMLResponse(content=file.read())
+
 @app.get("/", response_class=HTMLResponse)
 async def read_root():
-    with open("frontend/index.html", "r") as file:
-        return HTMLResponse(content=file.read())
+    return get_html_content("index.html")
 
 @app.get("/queue", response_class=HTMLResponse)
 async def read_queue():
-    with open("frontend/queue.html", "r") as file:
-        return HTMLResponse(content=file.read())
+    return get_html_content("queue.html")
 
 @app.get("/task-details", response_class=HTMLResponse)
 async def read_task_details():
-    with open("frontend/task-details.html", "r") as file:
-        return HTMLResponse(content=file.read())
+    return get_html_content("task-details.html")
 
 @app.get("/reports", response_class=HTMLResponse)
 async def read_reports():
-    with open("frontend/reports.html", "r") as file:
-        return HTMLResponse(content=file.read())
+    return get_html_content("reports.html")
+
+@app.get("/analytics", response_class=HTMLResponse)
+async def read_analytics():
+    return get_html_content("reports.html")
+
+# Catch-all route for SPA routing
+@app.get("/{full_path:path}", response_class=HTMLResponse)
+async def serve_spa(full_path: str):
+    # Try to serve the specific file first
+    if full_path and full_path != "/":
+        try:
+            return get_html_content(f"{full_path}.html")
+        except:
+            pass
+    # If not found, serve index.html for SPA routing
+    return get_html_content("index.html")
 
 # Authentication endpoints
 @app.post("/api/auth/login", response_model=Token)
