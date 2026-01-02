@@ -52,12 +52,29 @@ interface Kitchen {
   size: { width: number; height: number };
 }
 
+interface Lobby {
+  id: number;
+  name: string;
+  position: Position;
+  size: { width: number; height: number };
+}
+
+interface Corridor {
+  id: number;
+  name: string;
+  position: Position;
+  size: { width: number; height: number };
+}
+
 interface RestaurantState {
   robots: Robot[];
   tasks: Task[];
   tables: Table[];
   chargingStations: ChargingStation[];
   kitchen: Kitchen;
+  lobby1: Lobby;
+  lobby2: Lobby;
+  corridor: Corridor;
   isSystemRunning: boolean;
 }
 
@@ -74,75 +91,177 @@ interface RestaurantContextType extends RestaurantState {
 }
 
 // Initial data
+const initialLobby1: Lobby = {
+  id: 1,
+  name: "Lobby 1",
+  position: { x: 50, y: 50 },
+  size: { width: 300, height: 200 }
+};
+
+const initialLobby2: Lobby = {
+  id: 2,
+  name: "Lobby 2",
+  position: { x: 450, y: 50 },
+  size: { width: 300, height: 200 }
+};
+
+const initialCorridor: Corridor = {
+  id: 1,
+  name: "Main Corridor",
+  position: { x: 350, y: 50 },
+  size: { width: 100, height: 200 }
+};
+
+const initialKitchen: Kitchen = {
+  id: 1,
+  name: "Kitchen",
+  position: { x: 50, y: 300 },
+  size: { width: 150, height: 150 }
+};
+
+const initialChargingStations: ChargingStation[] = [
+  { id: 1, name: "Charging Station 1", position: { x: 220, y: 320 }, status: "occupied", robotId: 3 },
+  { id: 2, name: "Charging Station 2", position: { x: 220, y: 380 }, status: "available" }
+];
+
 const initialTables: Table[] = [
+  // Lobby 1 - first row
   { 
     id: 1, 
     name: "Table 1", 
-    position: { x: 200, y: 150 },
+    position: { x: 100, y: 100 },
     chairs: [
-      { id: 1, position: { x: 180, y: 130 } },
-      { id: 2, position: { x: 220, y: 130 } },
-      { id: 3, position: { x: 180, y: 170 } },
-      { id: 4, position: { x: 220, y: 170 } }
+      { id: 1, position: { x: 80, y: 80 } },
+      { id: 2, position: { x: 120, y: 80 } },
+      { id: 3, position: { x: 80, y: 120 } },
+      { id: 4, position: { x: 120, y: 120 } }
     ]
   },
   { 
     id: 2, 
     name: "Table 2", 
-    position: { x: 400, y: 150 },
+    position: { x: 200, y: 100 },
     chairs: [
-      { id: 5, position: { x: 380, y: 130 } },
-      { id: 6, position: { x: 420, y: 130 } },
-      { id: 7, position: { x: 380, y: 170 } },
-      { id: 8, position: { x: 420, y: 170 } }
+      { id: 5, position: { x: 180, y: 80 } },
+      { id: 6, position: { x: 220, y: 80 } },
+      { id: 7, position: { x: 180, y: 120 } },
+      { id: 8, position: { x: 220, y: 120 } }
     ]
   },
   { 
     id: 3, 
     name: "Table 3", 
-    position: { x: 200, y: 300 },
+    position: { x: 300, y: 100 },
     chairs: [
-      { id: 9, position: { x: 180, y: 280 } },
-      { id: 10, position: { x: 220, y: 280 } },
-      { id: 11, position: { x: 180, y: 320 } },
-      { id: 12, position: { x: 220, y: 320 } }
+      { id: 9, position: { x: 280, y: 80 } },
+      { id: 10, position: { x: 320, y: 80 } },
+      { id: 11, position: { x: 280, y: 120 } },
+      { id: 12, position: { x: 320, y: 120 } }
     ]
   },
+  // Lobby 1 - second row
   { 
     id: 4, 
     name: "Table 4", 
-    position: { x: 500, y: 300 },
+    position: { x: 100, y: 180 },
     chairs: [
-      { id: 13, position: { x: 480, y: 280 } },
-      { id: 14, position: { x: 520, y: 280 } },
-      { id: 15, position: { x: 480, y: 320 } },
-      { id: 16, position: { x: 520, y: 320 } }
+      { id: 13, position: { x: 80, y: 160 } },
+      { id: 14, position: { x: 120, y: 160 } },
+      { id: 15, position: { x: 80, y: 200 } },
+      { id: 16, position: { x: 120, y: 200 } }
     ]
   },
   { 
     id: 5, 
     name: "Table 5", 
-    position: { x: 350, y: 400 },
+    position: { x: 200, y: 180 },
     chairs: [
-      { id: 17, position: { x: 330, y: 380 } },
-      { id: 18, position: { x: 370, y: 380 } },
-      { id: 19, position: { x: 330, y: 420 } },
-      { id: 20, position: { x: 370, y: 420 } }
+      { id: 17, position: { x: 180, y: 160 } },
+      { id: 18, position: { x: 220, y: 160 } },
+      { id: 19, position: { x: 180, y: 200 } },
+      { id: 20, position: { x: 220, y: 200 } }
+    ]
+  },
+  { 
+    id: 6, 
+    name: "Table 6", 
+    position: { x: 300, y: 180 },
+    chairs: [
+      { id: 21, position: { x: 280, y: 160 } },
+      { id: 22, position: { x: 320, y: 160 } },
+      { id: 23, position: { x: 280, y: 200 } },
+      { id: 24, position: { x: 320, y: 200 } }
+    ]
+  },
+  // Lobby 2 - first row
+  { 
+    id: 7, 
+    name: "Table 7", 
+    position: { x: 500, y: 100 },
+    chairs: [
+      { id: 25, position: { x: 480, y: 80 } },
+      { id: 26, position: { x: 520, y: 80 } },
+      { id: 27, position: { x: 480, y: 120 } },
+      { id: 28, position: { x: 520, y: 120 } }
+    ]
+  },
+  { 
+    id: 8, 
+    name: "Table 8", 
+    position: { x: 600, y: 100 },
+    chairs: [
+      { id: 29, position: { x: 580, y: 80 } },
+      { id: 30, position: { x: 620, y: 80 } },
+      { id: 31, position: { x: 580, y: 120 } },
+      { id: 32, position: { x: 620, y: 120 } }
+    ]
+  },
+  { 
+    id: 9, 
+    name: "Table 9", 
+    position: { x: 700, y: 100 },
+    chairs: [
+      { id: 33, position: { x: 680, y: 80 } },
+      { id: 34, position: { x: 720, y: 80 } },
+      { id: 35, position: { x: 680, y: 120 } },
+      { id: 36, position: { x: 720, y: 120 } }
+    ]
+  },
+  // Lobby 2 - second row
+  { 
+    id: 10, 
+    name: "Table 10", 
+    position: { x: 500, y: 180 },
+    chairs: [
+      { id: 37, position: { x: 480, y: 160 } },
+      { id: 38, position: { x: 520, y: 160 } },
+      { id: 39, position: { x: 480, y: 200 } },
+      { id: 40, position: { x: 520, y: 200 } }
+    ]
+  },
+  { 
+    id: 11, 
+    name: "Table 11", 
+    position: { x: 600, y: 180 },
+    chairs: [
+      { id: 41, position: { x: 580, y: 160 } },
+      { id: 42, position: { x: 620, y: 160 } },
+      { id: 43, position: { x: 580, y: 200 } },
+      { id: 44, position: { x: 620, y: 200 } }
+    ]
+  },
+  { 
+    id: 12, 
+    name: "Table 12", 
+    position: { x: 700, y: 180 },
+    chairs: [
+      { id: 45, position: { x: 680, y: 160 } },
+      { id: 46, position: { x: 720, y: 160 } },
+      { id: 47, position: { x: 680, y: 200 } },
+      { id: 48, position: { x: 720, y: 200 } }
     ]
   }
 ];
-
-const initialChargingStations: ChargingStation[] = [
-  { id: 1, name: "Charging Station 1", position: { x: 600, y: 450 }, status: "occupied", robotId: 3 },
-  { id: 2, name: "Charging Station 2", position: { x: 650, y: 450 }, status: "available" }
-];
-
-const initialKitchen: Kitchen = {
-  id: 1,
-  name: "Kitchen",
-  position: { x: 50, y: 50 },
-  size: { width: 120, height: 120 }
-};
 
 const initialTasks: Task[] = [
   { id: 1, type: "delivery", priority: "high", status: "in-progress", table: "Table 5", time: "2 min", effectivePriority: 95, assignedRobotId: 1 },
@@ -157,7 +276,7 @@ const initialTasks: Task[] = [
 const initialRobots: Robot[] = [
   { id: 1, name: "Robot Alpha", status: "delivering", battery: 85, position: { x: 300, y: 200 }, target: { x: 400, y: 150 }, currentTaskId: 1, lastActive: new Date() },
   { id: 2, name: "Robot Beta", status: "idle", battery: 92, position: { x: 150, y: 400 }, lastActive: new Date() },
-  { id: 3, name: "Robot Gamma", status: "charging", battery: 30, position: { x: 600, y: 450 }, currentTaskId: 5, lastActive: new Date() },
+  { id: 3, name: "Robot Gamma", status: "charging", battery: 30, position: { x: 220, y: 320 }, currentTaskId: 5, lastActive: new Date() },
   { id: 4, name: "Robot Delta", status: "collecting", battery: 67, position: { x: 500, y: 100 }, target: { x: 200, y: 300 }, currentTaskId: 2, lastActive: new Date() },
 ];
 
@@ -171,6 +290,9 @@ export function RestaurantProvider({ children }: { children: ReactNode }) {
     tables: initialTables,
     chargingStations: initialChargingStations,
     kitchen: initialKitchen,
+    lobby1: initialLobby1,
+    lobby2: initialLobby2,
+    corridor: initialCorridor,
     isSystemRunning: true
   });
 
