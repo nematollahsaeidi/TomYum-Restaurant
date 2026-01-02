@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MapPin, Utensils, BatteryCharging, Bot, Play, Pause } from "lucide-react";
+import { MapPin, Utensils, BatteryCharging, Bot, Play, Pause, ShoppingCart, CreditCard, Package } from "lucide-react";
 import { MadeWithDyad } from "@/components/made-with-dyad";
 import { useRestaurant } from "@/lib/restaurant-context";
 
@@ -165,8 +165,61 @@ const MapPage = () => {
                           height: '50px' 
                         }}
                       >
-                        <span className="font-bold text-amber-800 text-xs">{table.name}</span>
+                        <span className="font-bold text-amber-800 text-xs">T{table.id}</span>
                       </div>
+                      
+                      {/* Order Taking Point (Red) - Right of table */}
+                      <div 
+                        className="absolute bg-red-500 border-2 border-red-700 rounded flex items-center justify-center"
+                        style={{ 
+                          left: `${table.position.x + 50}px`, 
+                          top: `${table.position.y - 30}px`, 
+                          width: '20px', 
+                          height: '20px' 
+                        }}
+                      >
+                        <ShoppingCart className="h-3 w-3 text-white" />
+                      </div>
+                      
+                      {/* Payment Point (Green) - Right of table */}
+                      <div 
+                        className="absolute bg-green-500 border-2 border-green-700 rounded flex items-center justify-center"
+                        style={{ 
+                          left: `${table.position.x + 50}px`, 
+                          top: `${table.position.y - 5}px`, 
+                          width: '20px', 
+                          height: '20px' 
+                        }}
+                      >
+                        <CreditCard className="h-3 w-3 text-white" />
+                      </div>
+                      
+                      {/* Food Delivery Point (Blue) - Right of table */}
+                      <div 
+                        className="absolute bg-blue-500 border-2 border-blue-700 rounded flex items-center justify-center"
+                        style={{ 
+                          left: `${table.position.x + 50}px`, 
+                          top: `${table.position.y + 20}px`, 
+                          width: '20px', 
+                          height: '20px' 
+                        }}
+                      >
+                        <span className="text-white text-xs font-bold">F</span>
+                      </div>
+                      
+                      {/* Container Collection Point (Purple) - Right of table */}
+                      <div 
+                        className="absolute bg-purple-500 border-2 border-purple-700 rounded flex items-center justify-center"
+                        style={{ 
+                          left: `${table.position.x + 50}px`, 
+                          top: `${table.position.y + 45}px`, 
+                          width: '20px', 
+                          height: '20px' 
+                        }}
+                      >
+                        <Package className="h-3 w-3 text-white" />
+                      </div>
+                      
                       {/* Chairs */}
                       {table.chairs.map(chair => (
                         <div 
@@ -315,7 +368,23 @@ const MapPage = () => {
                   </div>
                   <div className="flex items-center">
                     <div className="w-4 h-4 bg-amber-100 border border-amber-300 mr-2"></div>
-                    <span className="text-xs">Tables</span>
+                    <span className="text-xs">Tables (T1, T2, etc.)</span>
+                  </div>
+                  <div className="flex items-center">
+                    <div className="w-3 h-3 bg-red-500 border border-red-700 rounded-full mr-2"></div>
+                    <span className="text-xs">Order Taking</span>
+                  </div>
+                  <div className="flex items-center">
+                    <div className="w-3 h-3 bg-green-500 border border-green-700 rounded-full mr-2"></div>
+                    <span className="text-xs">Payment</span>
+                  </div>
+                  <div className="flex items-center">
+                    <div className="w-3 h-3 bg-blue-500 border border-blue-700 rounded-full mr-2"></div>
+                    <span className="text-xs">Food Delivery</span>
+                  </div>
+                  <div className="flex items-center">
+                    <div className="w-3 h-3 bg-purple-500 border border-purple-700 rounded-full mr-2"></div>
+                    <span className="text-xs">Container Collection</span>
                   </div>
                   <div className="flex items-center">
                     <div className="w-3 h-3 bg-gray-300 border border-gray-400 rounded-full mr-2"></div>
