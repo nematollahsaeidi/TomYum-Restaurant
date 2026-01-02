@@ -1,47 +1,25 @@
 "use client";
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { 
-  Utensils,
-  Plus,
-  Edit,
-  Trash2,
-  Save,
-  X
-} from "lucide-react";
+import { Utensils, Plus, Edit, Trash2, Save, X } from "lucide-react";
 import { MadeWithDyad } from "@/components/made-with-dyad";
-
-interface MenuItem {
-  id: number;
-  name: string;
-  description: string;
-  price: number;
-  category: string;
-  popular: boolean;
-}
-
-const initialMenuItems: MenuItem[] = [
-  { id: 1, name: "Tom Yum Soup", description: "Spicy and sour shrimp soup with mushrooms", price: 12.99, category: "Soups", popular: true },
-  { id: 2, name: "Pad Thai", description: "Stir-fried rice noodles with shrimp, tofu, and peanuts", price: 14.99, category: "Noodles", popular: true },
-  { id: 3, name: "Green Curry", description: "Spicy green curry with chicken and vegetables", price: 13.99, category: "Curries", popular: false },
-  { id: 4, name: "Massaman Curry", description: "Rich and mild curry with beef and potatoes", price: 14.99, category: "Curries", popular: true },
-  { id: 5, name: "Spring Rolls", description: "Crispy vegetable spring rolls with sweet chili sauce", price: 7.99, category: "Appetizers", popular: false },
-];
+import { initialMenuItems, MenuItem } from "@/lib/menu-data";
 
 export default function MenuPage() {
   const [menuItems, setMenuItems] = useState<MenuItem[]>(initialMenuItems);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
-  const [newItem, setNewItem] = useState<Omit<MenuItem, 'id'>>({ 
-    name: "", 
-    description: "", 
-    price: 0, 
-    category: "", 
-    popular: false 
+  const [newItem, setNewItem] = useState<Omit<MenuItem, 'id'>>({
+    name: "",
+    description: "",
+    price: 0,
+    category: "",
+    subcategory: "",
+    popular: false,
+    vegetarian: false
   });
 
   const handleEdit = (item: MenuItem) => {
@@ -50,7 +28,9 @@ export default function MenuPage() {
 
   const handleSave = () => {
     if (editingItem) {
-      setMenuItems(menuItems.map(item => item.id === editingItem.id ? editingItem : item));
+      setMenuItems(menuItems.map(item => 
+        item.id === editingItem.id ? editingItem : item
+      ));
       setEditingItem(null);
     }
   };
@@ -69,7 +49,15 @@ export default function MenuPage() {
       id: Math.max(0, ...menuItems.map(item => item.id)) + 1
     };
     setMenuItems([...menuItems, newItemWithId]);
-    setNewItem({ name: "", description: "", price: 0, category: "", popular: false });
+    setNewItem({
+      name: "",
+      description: "",
+      price: 0,
+      category: "",
+      subcategory: "",
+      popular: false,
+      vegetarian: false
+    });
   };
 
   const handleInputChange = (field: keyof MenuItem, value: string | number | boolean) => {
@@ -131,7 +119,6 @@ export default function MenuPage() {
                               />
                             </div>
                           </div>
-                          
                           <div className="space-y-2">
                             <Label htmlFor={`description-${item.id}`}>Description</Label>
                             <Textarea
@@ -141,7 +128,6 @@ export default function MenuPage() {
                               rows={2}
                             />
                           </div>
-                          
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-2">
                               <Label htmlFor={`category-${item.id}`}>Category</Label>
@@ -151,20 +137,37 @@ export default function MenuPage() {
                                 onChange={(e) => handleInputChange("category", e.target.value)}
                               />
                             </div>
-                            <div className="flex items-end">
-                              <div className="flex items-center space-x-2">
-                                <input
-                                  type="checkbox"
-                                  id={`popular-${item.id}`}
-                                  checked={editingItem.popular}
-                                  onChange={(e) => handleInputChange("popular", e.target.checked)}
-                                  className="h-4 w-4"
-                                />
-                                <Label htmlFor={`popular-${item.id}`}>Popular Item</Label>
-                              </div>
+                            <div className="space-y-2">
+                              <Label htmlFor={`subcategory-${item.id}`}>Subcategory</Label>
+                              <Input
+                                id={`subcategory-${item.id}`}
+                                value={editingItem.subcategory}
+                                onChange={(e) => handleInputChange("subcategory", e.target.value)}
+                              />
                             </div>
                           </div>
-                          
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div className="flex items-center space-x-2">
+                              <input
+                                type="checkbox"
+                                id={`popular-${item.id}`}
+                                checked={editingItem.popular}
+                                onChange={(e) => handleInputChange("popular", e.target.checked)}
+                                className="h-4 w-4"
+                              />
+                              <Label htmlFor={`popular-${item.id}`}>Popular Item</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <input
+                                type="checkbox"
+                                id={`vegetarian-${item.id}`}
+                                checked={editingItem.vegetarian}
+                                onChange={(e) => handleInputChange("vegetarian", e.target.checked)}
+                                className="h-4 w-4"
+                              />
+                              <Label htmlFor={`vegetarian-${item.id}`}>Vegetarian</Label>
+                            </div>
+                          </div>
                           <div className="flex justify-end space-x-2">
                             <Button variant="outline" onClick={handleCancel}>
                               <X className="h-4 w-4 mr-2" />
@@ -186,27 +189,26 @@ export default function MenuPage() {
                                   Popular
                                 </span>
                               )}
+                              {item.vegetarian && (
+                                <span className="ml-2 px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
+                                  Veg
+                                </span>
+                              )}
                             </div>
                             <p className="text-sm text-gray-500 mt-1">{item.description}</p>
                             <div className="flex items-center mt-2">
                               <span className="font-medium">${item.price.toFixed(2)}</span>
                               <span className="mx-2 text-gray-300">•</span>
                               <span className="text-sm text-gray-500">{item.category}</span>
+                              <span className="mx-2 text-gray-300">•</span>
+                              <span className="text-sm text-gray-500">{item.subcategory}</span>
                             </div>
                           </div>
                           <div className="flex space-x-2">
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => handleEdit(item)}
-                            >
+                            <Button variant="outline" size="sm" onClick={() => handleEdit(item)}>
                               <Edit className="h-4 w-4" />
                             </Button>
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => handleDelete(item.id)}
-                            >
+                            <Button variant="outline" size="sm" onClick={() => handleDelete(item.id)}>
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </div>
@@ -218,7 +220,7 @@ export default function MenuPage() {
               </CardContent>
             </Card>
           </div>
-          
+
           {/* Add New Item */}
           <div className="space-y-6">
             <Card>
@@ -238,7 +240,6 @@ export default function MenuPage() {
                     placeholder="e.g., Tom Yum Soup"
                   />
                 </div>
-                
                 <div className="space-y-2">
                   <Label htmlFor="new-description">Description</Label>
                   <Textarea
@@ -249,7 +250,6 @@ export default function MenuPage() {
                     rows={3}
                   />
                 </div>
-                
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="new-price">Price ($)</Label>
@@ -272,25 +272,44 @@ export default function MenuPage() {
                     />
                   </div>
                 </div>
-                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="new-subcategory">Subcategory</Label>
+                    <Input
+                      id="new-subcategory"
+                      value={newItem.subcategory}
+                      onChange={(e) => handleNewInputChange("subcategory", e.target.value)}
+                      placeholder="e.g., Spicy"
+                    />
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="new-popular"
+                      checked={newItem.popular}
+                      onChange={(e) => handleNewInputChange("popular", e.target.checked)}
+                      className="h-4 w-4"
+                    />
+                    <Label htmlFor="new-popular">Popular Item</Label>
+                  </div>
+                </div>
                 <div className="flex items-center space-x-2">
                   <input
                     type="checkbox"
-                    id="new-popular"
-                    checked={newItem.popular}
-                    onChange={(e) => handleNewInputChange("popular", e.target.checked)}
+                    id="new-vegetarian"
+                    checked={newItem.vegetarian}
+                    onChange={(e) => handleNewInputChange("vegetarian", e.target.checked)}
                     className="h-4 w-4"
                   />
-                  <Label htmlFor="new-popular">Popular Item</Label>
+                  <Label htmlFor="new-vegetarian">Vegetarian</Label>
                 </div>
-                
                 <Button className="w-full" onClick={handleAddItem}>
                   <Plus className="h-4 w-4 mr-2" />
                   Add Item
                 </Button>
               </CardContent>
             </Card>
-            
+
             {/* Menu Categories */}
             <Card>
               <CardHeader>
@@ -309,7 +328,7 @@ export default function MenuPage() {
                 </div>
               </CardContent>
             </Card>
-            
+
             {/* Menu Stats */}
             <Card>
               <CardHeader>
@@ -325,6 +344,12 @@ export default function MenuPage() {
                     <span>Popular Items</span>
                     <span className="font-medium">
                       {menuItems.filter(item => item.popular).length}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Vegetarian Items</span>
+                    <span className="font-medium">
+                      {menuItems.filter(item => item.vegetarian).length}
                     </span>
                   </div>
                   <div className="flex justify-between">
