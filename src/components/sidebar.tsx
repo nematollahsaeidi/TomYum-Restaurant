@@ -1,5 +1,5 @@
 "use client";
-import { Home, ListOrdered, Bot, Settings, BarChart3, Users, Utensils, Package, CreditCard, BatteryCharging } from "lucide-react";
+import { Home, ListOrdered, Bot, Settings, BarChart3, Users, Utensils, Package, CreditCard, BatteryCharging, Map } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -9,6 +9,7 @@ const navItems = [
   { name: "Dashboard", icon: Home, href: "/" },
   { name: "Task Queue", icon: ListOrdered, href: "/tasks" },
   { name: "Robots", icon: Bot, href: "/robots" },
+  { name: "Map", icon: Map, href: "/map" },
   { name: "Analytics", icon: BarChart3, href: "/analytics" },
   { name: "Customers", icon: Users, href: "/customers" },
   { name: "Menu", icon: Utensils, href: "/menu" },
