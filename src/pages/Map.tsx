@@ -90,7 +90,7 @@ const MapPage = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="relative bg-gray-100 rounded-lg overflow-hidden" style={{ height: '600px' }}>
+                <div className="relative bg-gray-100 rounded-lg overflow-hidden" style={{ height: '700px' }}>
                   {/* Lobby 1 */}
                   <div 
                     className="absolute bg-amber-50 border-2 border-amber-200 flex items-center justify-center"
@@ -102,7 +102,7 @@ const MapPage = () => {
                     }}
                   >
                     <div className="text-center">
-                      <span className="font-bold text-amber-800">{lobby1.name}</span>
+                      <span className="font-bold text-amber-800 text-sm">{lobby1.name}</span>
                     </div>
                   </div>
                   
@@ -117,7 +117,7 @@ const MapPage = () => {
                     }}
                   >
                     <div className="text-center">
-                      <span className="font-bold text-amber-800">{lobby2.name}</span>
+                      <span className="font-bold text-amber-800 text-sm">{lobby2.name}</span>
                     </div>
                   </div>
                   
@@ -132,7 +132,7 @@ const MapPage = () => {
                     }}
                   >
                     <div className="text-center">
-                      <span className="font-bold text-gray-700">{corridor.name}</span>
+                      <span className="font-bold text-gray-700 text-sm">{corridor.name}</span>
                     </div>
                   </div>
                   
@@ -147,8 +147,8 @@ const MapPage = () => {
                     }}
                   >
                     <div className="text-center">
-                      <Utensils className="mx-auto h-8 w-8 text-orange-600" />
-                      <span className="font-bold text-orange-800">{kitchen.name}</span>
+                      <Utensils className="mx-auto h-6 w-6 text-orange-600" />
+                      <span className="font-bold text-orange-800 text-xs">{kitchen.name}</span>
                     </div>
                   </div>
                   
@@ -159,13 +159,13 @@ const MapPage = () => {
                       <div 
                         className="absolute bg-amber-100 border-2 border-amber-300 rounded flex items-center justify-center"
                         style={{ 
-                          left: `${table.position.x - 30}px`, 
-                          top: `${table.position.y - 20}px`, 
-                          width: '60px', 
-                          height: '40px' 
+                          left: `${table.position.x - 40}px`, 
+                          top: `${table.position.y - 25}px`, 
+                          width: '80px', 
+                          height: '50px' 
                         }}
                       >
-                        <span className="font-bold text-amber-800 text-sm">{table.name}</span>
+                        <span className="font-bold text-amber-800 text-xs">{table.name}</span>
                       </div>
                       {/* Chairs */}
                       {table.chairs.map(chair => (
@@ -173,13 +173,13 @@ const MapPage = () => {
                           key={chair.id} 
                           className="absolute bg-gray-300 border border-gray-400 rounded-full"
                           style={{ 
-                            left: `${chair.position.x - 10}px`, 
-                            top: `${chair.position.y - 10}px`, 
-                            width: '20px', 
-                            height: '20px' 
+                            left: `${chair.position.x - 12}px`, 
+                            top: `${chair.position.y - 12}px`, 
+                            width: '24px', 
+                            height: '24px' 
                           }}
                         >
-                          <span className="text-xs text-gray-700 absolute -top-5 left-1/2 transform -translate-x-1/2">
+                          <span className="text-[10px] text-gray-700 absolute -top-4 left-1/2 transform -translate-x-1/2">
                             C{chair.id}
                           </span>
                         </div>
@@ -197,17 +197,17 @@ const MapPage = () => {
                           : "bg-yellow-100 border-yellow-400"
                       }`}
                       style={{ 
-                        left: `${station.position.x - 35}px`, 
-                        top: `${station.position.y - 25}px`, 
-                        width: '70px', 
-                        height: '50px' 
+                        left: `${station.position.x - 45}px`, 
+                        top: `${station.position.y - 30}px`, 
+                        width: '90px', 
+                        height: '60px' 
                       }}
                     >
                       <div className="text-center">
                         <BatteryCharging className="mx-auto h-5 w-5 text-gray-700" />
                         <span className="font-bold text-gray-800 text-xs">{station.name}</span>
                         {station.robotId && (
-                          <div className="text-xs text-gray-600">R{station.robotId}</div>
+                          <div className="text-[10px] text-gray-600">R{station.robotId}</div>
                         )}
                       </div>
                     </div>
@@ -219,18 +219,18 @@ const MapPage = () => {
                       <div 
                         className={`absolute rounded-full flex items-center justify-center border-2 ${getStatusColor(robot.status)} border-white shadow-lg`}
                         style={{ 
-                          left: `${robot.position.x - 15}px`, 
-                          top: `${robot.position.y - 15}px`, 
-                          width: '30px', 
-                          height: '30px' 
+                          left: `${robot.position.x - 18}px`, 
+                          top: `${robot.position.y - 18}px`, 
+                          width: '36px', 
+                          height: '36px' 
                         }}
                       >
-                        <Bot className="h-4 w-4 text-white" />
+                        <Bot className="h-5 w-5 text-white" />
                       </div>
-                      <div className="absolute text-xs font-bold bg-white px-1 rounded whitespace-nowrap" 
+                      <div className="absolute text-[10px] font-bold bg-white px-1 rounded whitespace-nowrap" 
                         style={{ 
-                          left: `${robot.position.x + 20}px`, 
-                          top: `${robot.position.y - 10}px` 
+                          left: `${robot.position.x + 25}px`, 
+                          top: `${robot.position.y - 12}px` 
                         }}
                       >
                         {robot.name}
@@ -280,8 +280,8 @@ const MapPage = () => {
                       <div className="flex items-center space-x-3">
                         <div className={`h-3 w-3 rounded-full ${getStatusColor(robot.status)}`}></div>
                         <div>
-                          <h3 className="font-medium">{robot.name}</h3>
-                          <p className="text-sm text-gray-500">
+                          <h3 className="font-medium text-sm">{robot.name}</h3>
+                          <p className="text-xs text-gray-500">
                             {robot.currentTaskId 
                               ? `Task #${robot.currentTaskId}` 
                               : "Idle"}
@@ -289,7 +289,7 @@ const MapPage = () => {
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="font-medium">{robot.battery}%</div>
+                        <div className="font-medium text-sm">{robot.battery}%</div>
                         <div className="text-xs text-gray-500">Battery</div>
                       </div>
                     </div>
@@ -301,37 +301,37 @@ const MapPage = () => {
             {/* Legend */}
             <Card>
               <CardHeader>
-                <CardTitle>Map Legend</CardTitle>
+                <CardTitle className="text-sm">Map Legend</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
                   <div className="flex items-center">
                     <div className="w-4 h-4 bg-amber-200 border border-amber-400 mr-2"></div>
-                    <span className="text-sm">Lobbies</span>
+                    <span className="text-xs">Lobbies</span>
                   </div>
                   <div className="flex items-center">
                     <div className="w-4 h-4 bg-gray-200 border border-gray-300 mr-2"></div>
-                    <span className="text-sm">Corridor</span>
+                    <span className="text-xs">Corridor</span>
                   </div>
                   <div className="flex items-center">
                     <div className="w-4 h-4 bg-amber-100 border border-amber-300 mr-2"></div>
-                    <span className="text-sm">Tables</span>
+                    <span className="text-xs">Tables</span>
                   </div>
                   <div className="flex items-center">
                     <div className="w-3 h-3 bg-gray-300 border border-gray-400 rounded-full mr-2"></div>
-                    <span className="text-sm">Chairs (C1, C2, etc.)</span>
+                    <span className="text-xs">Chairs (C1, C2, etc.)</span>
                   </div>
                   <div className="flex items-center">
                     <div className="w-4 h-4 bg-orange-200 border border-orange-400 mr-2"></div>
-                    <span className="text-sm">Kitchen</span>
+                    <span className="text-xs">Kitchen</span>
                   </div>
                   <div className="flex items-center">
                     <div className="w-4 h-4 bg-green-100 border border-green-400 mr-2"></div>
-                    <span className="text-sm">Charging Station</span>
+                    <span className="text-xs">Charging Station</span>
                   </div>
                   <div className="flex items-center">
                     <div className="w-4 h-4 bg-blue-500 rounded-full mr-2"></div>
-                    <span className="text-sm">Robots</span>
+                    <span className="text-xs">Robots</span>
                   </div>
                 </div>
               </CardContent>
@@ -340,25 +340,25 @@ const MapPage = () => {
             {/* System Status */}
             <Card>
               <CardHeader>
-                <CardTitle>System Status</CardTitle>
+                <CardTitle className="text-sm">System Status</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
                   <div className="flex justify-between">
-                    <span>Active Robots</span>
-                    <Badge variant="secondary">{robots.length}</Badge>
+                    <span className="text-sm">Active Robots</span>
+                    <Badge variant="secondary" className="text-xs">{robots.length}</Badge>
                   </div>
                   <div className="flex justify-between">
-                    <span>Tables</span>
-                    <Badge variant="secondary">{tables.length}</Badge>
+                    <span className="text-sm">Tables</span>
+                    <Badge variant="secondary" className="text-xs">{tables.length}</Badge>
                   </div>
                   <div className="flex justify-between">
-                    <span>Charging Stations</span>
-                    <Badge variant="secondary">{chargingStations.length}</Badge>
+                    <span className="text-sm">Charging Stations</span>
+                    <Badge variant="secondary" className="text-xs">{chargingStations.length}</Badge>
                   </div>
                   <div className="flex justify-between">
-                    <span>System Status</span>
-                    <Badge variant={isSystemRunning ? "default" : "destructive"}>
+                    <span className="text-sm">System Status</span>
+                    <Badge variant={isSystemRunning ? "default" : "destructive"} className="text-xs">
                       {isSystemRunning ? "Running" : "Paused"}
                     </Badge>
                   </div>
