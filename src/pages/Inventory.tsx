@@ -1,117 +1,43 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { 
-  Package,
-  Search,
-  Plus,
-  Edit,
-  Trash2,
-  AlertTriangle,
-  TrendingUp,
-  TrendingDown
-} from "lucide-react";
+import { Package, Search, Plus, Edit, Trash2, AlertTriangle, TrendingUp, TrendingDown } from "lucide-react";
 import { MadeWithDyad } from "@/components/made-with-dyad";
-
-interface InventoryItem {
-  id: number;
-  name: string;
-  category: string;
-  quantity: number;
-  unit: string;
-  minThreshold: number;
-  supplier: string;
-  lastRestocked: string;
-  status: "in-stock" | "low-stock" | "out-of-stock";
-}
-
-const initialInventory: InventoryItem[] = [
-  { 
-    id: 1, 
-    name: "Shrimp", 
-    category: "Protein", 
-    quantity: 15, 
-    unit: "lbs", 
-    minThreshold: 10, 
-    supplier: "Ocean Fresh Seafood", 
-    lastRestocked: "2023-06-15",
-    status: "in-stock"
-  },
-  { 
-    id: 2, 
-    name: "Chicken Breast", 
-    category: "Protein", 
-    quantity: 8, 
-    unit: "lbs", 
-    minThreshold: 15, 
-    supplier: "Farm Fresh Poultry", 
-    lastRestocked: "2023-06-10",
-    status: "low-stock"
-  },
-  { 
-    id: 3, 
-    name: "Coconut Milk", 
-    category: "Dairy", 
-    quantity: 0, 
-    unit: "cans", 
-    minThreshold: 24, 
-    supplier: "Tropical Foods Inc", 
-    lastRestocked: "2023-06-05",
-    status: "out-of-stock"
-  },
-  { 
-    id: 4, 
-    name: "Thai Basil", 
-    category: "Herbs", 
-    quantity: 3, 
-    unit: "bunches", 
-    minThreshold: 5, 
-    supplier: "Green Thumb Farms", 
-    lastRestocked: "2023-06-18",
-    status: "low-stock"
-  },
-  { 
-    id: 5, 
-    name: "Jasmine Rice", 
-    category: "Grains", 
-    quantity: 50, 
-    unit: "lbs", 
-    minThreshold: 20, 
-    supplier: "Rice Distributors Co", 
-    lastRestocked: "2023-06-01",
-    status: "in-stock"
-  },
-  { 
-    id: 6, 
-    name: "Fish Sauce", 
-    category: "Condiments", 
-    quantity: 12, 
-    unit: "bottles", 
-    minThreshold: 8, 
-    supplier: "Thai Importers", 
-    lastRestocked: "2023-06-12",
-    status: "in-stock"
-  },
-];
+import { inventoryService, InventoryItem } from "@/lib/inventory-service";
+import { toast } from "sonner";
 
 export default function InventoryPage() {
-  const [inventory, setInventory] = useState<InventoryItem[]>(initialInventory);
+  const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [newItem, setNewItem] = useState<Omit<InventoryItem, 'id' | 'status'>>({ 
-    name: "", 
-    category: "", 
-    quantity: 0, 
-    unit: "", 
-    minThreshold: 0, 
-    supplier: "", 
+  const [newItem, setNewItem] = useState<Omit<InventoryItem, 'id' | 'status'>>({
+    name: "",
+    category: "",
+    quantity: 0,
+    unit: "",
+    minThreshold: 0,
+    supplier: "",
     lastRestocked: new Date().toISOString().split('T')[0]
   });
 
-  const filteredInventory = inventory.filter(item => 
+  useEffect(() => {
+    fetchInventory();
+  }, []);
+
+  const fetchInventory = () => {
+    try {
+      const inventoryData = inventoryService.getItems();
+      setInventory(inventoryData);
+    } catch (error) {
+      toast.error("Failed to load inventory");
+      console.error("Error fetching inventory:", error);
+    }
+  };
+
+  const filteredInventory = inventory.filter(item =>
     item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     item.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
     item.supplier.toLowerCase().includes(searchTerm.toLowerCase())
@@ -136,26 +62,35 @@ export default function InventoryPage() {
   };
 
   const handleAddItem = () => {
-    const newItemWithDefaults: InventoryItem = {
-      ...newItem,
-      id: Math.max(0, ...inventory.map(i => i.id)) + 1,
-      status: newItem.quantity === 0 ? "out-of-stock" : 
-              newItem.quantity <= newItem.minThreshold ? "low-stock" : "in-stock"
-    };
-    setInventory([...inventory, newItemWithDefaults]);
-    setNewItem({ 
-      name: "", 
-      category: "", 
-      quantity: 0, 
-      unit: "", 
-      minThreshold: 0, 
-      supplier: "", 
-      lastRestocked: new Date().toISOString().split('T')[0]
-    });
+    if (!newItem.name || !newItem.category || !newItem.supplier) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+    
+    try {
+      inventoryService.addItem(newItem);
+      setNewItem({
+        name: "",
+        category: "",
+        quantity: 0,
+        unit: "",
+        minThreshold: 0,
+        supplier: "",
+        lastRestocked: new Date().toISOString().split('T')[0]
+      });
+      fetchInventory(); // Refresh the list
+    } catch (error) {
+      toast.error("Failed to add item");
+    }
   };
 
   const handleDeleteItem = (id: number) => {
-    setInventory(inventory.filter(item => item.id !== id));
+    try {
+      inventoryService.deleteItem(id);
+      fetchInventory(); // Refresh the list
+    } catch (error) {
+      toast.error("Failed to delete item");
+    }
   };
 
   const lowStockItems = inventory.filter(item => item.status === "low-stock").length;
@@ -169,7 +104,6 @@ export default function InventoryPage() {
           <h1 className="text-3xl font-bold text-gray-900">Inventory Management</h1>
           <p className="text-gray-600 mt-2">Track and manage restaurant inventory</p>
         </div>
-
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
           <div className="md:col-span-1 bg-white p-6 rounded-lg border">
             <div className="flex items-center">
@@ -182,7 +116,6 @@ export default function InventoryPage() {
               </div>
             </div>
           </div>
-          
           <div className="md:col-span-1 bg-white p-6 rounded-lg border">
             <div className="flex items-center">
               <div className="p-3 bg-yellow-100 rounded-full mr-4">
@@ -194,7 +127,6 @@ export default function InventoryPage() {
               </div>
             </div>
           </div>
-          
           <div className="md:col-span-1 bg-white p-6 rounded-lg border">
             <div className="flex items-center">
               <div className="p-3 bg-red-100 rounded-full mr-4">
@@ -206,7 +138,6 @@ export default function InventoryPage() {
               </div>
             </div>
           </div>
-          
           <div className="md:col-span-1 bg-white p-6 rounded-lg border">
             <div className="flex items-center">
               <div className="p-3 bg-green-100 rounded-full mr-4">
@@ -221,7 +152,6 @@ export default function InventoryPage() {
             </div>
           </div>
         </div>
-
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Inventory List */}
           <div className="lg:col-span-2 space-y-6">
@@ -229,8 +159,7 @@ export default function InventoryPage() {
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   <div className="flex items-center">
-                    <Package className="mr-2 h-5 w-5" />
-                    Inventory Items
+                    <Package className="mr-2 h-5 w-5" /> Inventory Items
                   </div>
                   <span className="text-sm font-normal text-gray-500">
                     {filteredInventory.length} items
@@ -241,15 +170,14 @@ export default function InventoryPage() {
                 <div className="mb-4">
                   <div className="relative">
                     <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                    <Input
-                      placeholder="Search inventory..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10"
+                    <Input 
+                      placeholder="Search inventory..." 
+                      value={searchTerm} 
+                      onChange={(e) => setSearchTerm(e.target.value)} 
+                      className="pl-10" 
                     />
                   </div>
                 </div>
-                
                 <div className="space-y-4">
                   {filteredInventory.map((item) => (
                     <div key={item.id} className="p-4 border rounded-lg hover:bg-gray-50">
@@ -281,7 +209,7 @@ export default function InventoryPage() {
                           </Button>
                           <Button 
                             variant="outline" 
-                            size="sm"
+                            size="sm" 
                             onClick={() => handleDeleteItem(item.id)}
                           >
                             <Trash2 className="h-4 w-4" />
@@ -300,75 +228,70 @@ export default function InventoryPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
-                  <Plus className="mr-2 h-5 w-5" />
-                  Add New Item
+                  <Plus className="mr-2 h-5 w-5" /> Add New Item
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="name">Item Name</Label>
-                  <Input
-                    id="name"
-                    value={newItem.name}
-                    onChange={(e) => setNewItem({...newItem, name: e.target.value})}
-                    placeholder="e.g., Shrimp"
+                  <Input 
+                    id="name" 
+                    value={newItem.name} 
+                    onChange={(e) => setNewItem({...newItem, name: e.target.value})} 
+                    placeholder="e.g., Shrimp" 
                   />
                 </div>
-                
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="category">Category</Label>
-                    <Input
-                      id="category"
-                      value={newItem.category}
-                      onChange={(e) => setNewItem({...newItem, category: e.target.value})}
-                      placeholder="e.g., Protein"
+                    <Input 
+                      id="category" 
+                      value={newItem.category} 
+                      onChange={(e) => setNewItem({...newItem, category: e.target.value})} 
+                      placeholder="e.g., Protein" 
                     />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="supplier">Supplier</Label>
-                    <Input
-                      id="supplier"
-                      value={newItem.supplier}
-                      onChange={(e) => setNewItem({...newItem, supplier: e.target.value})}
-                      placeholder="e.g., Ocean Fresh"
+                    <Input 
+                      id="supplier" 
+                      value={newItem.supplier} 
+                      onChange={(e) => setNewItem({...newItem, supplier: e.target.value})} 
+                      placeholder="e.g., Ocean Fresh" 
                     />
                   </div>
                 </div>
-                
                 <div className="grid grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="quantity">Quantity</Label>
-                    <Input
-                      id="quantity"
-                      type="number"
-                      value={newItem.quantity || ""}
-                      onChange={(e) => setNewItem({...newItem, quantity: parseInt(e.target.value) || 0})}
+                    <Input 
+                      id="quantity" 
+                      type="number" 
+                      value={newItem.quantity || ""} 
+                      onChange={(e) => setNewItem({...newItem, quantity: parseInt(e.target.value) || 0})} 
                     />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="unit">Unit</Label>
-                    <Input
-                      id="unit"
-                      value={newItem.unit}
-                      onChange={(e) => setNewItem({...newItem, unit: e.target.value})}
-                      placeholder="e.g., lbs"
+                    <Input 
+                      id="unit" 
+                      value={newItem.unit} 
+                      onChange={(e) => setNewItem({...newItem, unit: e.target.value})} 
+                      placeholder="e.g., lbs" 
                     />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="threshold">Min Threshold</Label>
-                    <Input
-                      id="threshold"
-                      type="number"
-                      value={newItem.minThreshold || ""}
-                      onChange={(e) => setNewItem({...newItem, minThreshold: parseInt(e.target.value) || 0})}
+                    <Input 
+                      id="threshold" 
+                      type="number" 
+                      value={newItem.minThreshold || ""} 
+                      onChange={(e) => setNewItem({...newItem, minThreshold: parseInt(e.target.value) || 0})} 
                     />
                   </div>
                 </div>
-                
                 <Button className="w-full" onClick={handleAddItem}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Item
+                  <Plus className="h-4 w-4 mr-2" /> Add Item
                 </Button>
               </CardContent>
             </Card>
@@ -396,8 +319,7 @@ export default function InventoryPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
-                  <AlertTriangle className="mr-2 h-5 w-5 text-yellow-500" />
-                  Low Stock Alerts
+                  <AlertTriangle className="mr-2 h-5 w-5 text-yellow-500" /> Low Stock Alerts
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -420,7 +342,6 @@ export default function InventoryPage() {
                         </div>
                       </div>
                     ))}
-                  
                   {inventory.filter(item => item.status === "low-stock" || item.status === "out-of-stock").length === 0 && (
                     <div className="text-center py-4 text-gray-500">
                       No low stock items
@@ -431,7 +352,6 @@ export default function InventoryPage() {
             </Card>
           </div>
         </div>
-
         <MadeWithDyad />
       </div>
     </div>

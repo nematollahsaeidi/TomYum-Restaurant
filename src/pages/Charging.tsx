@@ -1,11 +1,14 @@
 "use client";
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { BatteryCharging, Battery, Plug, Zap, Play, Pause } from "lucide-react";
 import { MadeWithDyad } from "@/components/made-with-dyad";
+import { robotService } from "@/lib/robot-service";
+import { toast } from "sonner";
 
 interface ChargingStation {
   id: number;
@@ -18,57 +21,79 @@ interface ChargingStation {
   timeRemaining?: string;
 }
 
-const chargingStations: ChargingStation[] = [
-  {
-    id: 1,
-    name: "Station Alpha",
-    status: "charging",
-    robotId: 3,
-    robotName: "Robot Gamma",
-    batteryLevel: 30,
-    chargingRate: 85,
-    timeRemaining: "12 min"
-  },
-  {
-    id: 2,
-    name: "Station Beta",
-    status: "available"
-  },
-  {
-    id: 3,
-    name: "Station Gamma",
-    status: "offline"
-  },
-];
-
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case "available":
-      return "bg-green-500";
-    case "charging":
-      return "bg-blue-500";
-    case "offline":
-      return "bg-red-500";
-    default:
-      return "bg-gray-500";
-  }
-};
-
-const getStatusText = (status: string) => {
-  switch (status) {
-    case "available":
-      return "Available";
-    case "charging":
-      return "Charging";
-    case "offline":
-      return "Offline";
-    default:
-      return "Unknown";
-  }
-};
-
 export default function ChargingPage() {
   const [isChargingEnabled, setIsChargingEnabled] = useState(true);
+  const [chargingStations, setChargingStations] = useState<ChargingStation[]>([]);
+  const [robots, setRobots] = useState<any[]>([]);
+  const [lowBatteryRobots, setLowBatteryRobots] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetchChargingData();
+  }, []);
+
+  const fetchChargingData = async () => {
+    try {
+      // In a real implementation, we would fetch this data from the API
+      // For now, we'll use mock data
+      const mockStations: ChargingStation[] = [
+        { 
+          id: 1, 
+          name: "Station Alpha", 
+          status: "charging", 
+          robotId: 3, 
+          robotName: "Robot Gamma", 
+          batteryLevel: 30, 
+          chargingRate: 85, 
+          timeRemaining: "12 min" 
+        },
+        { id: 2, name: "Station Beta", status: "available" },
+        { id: 3, name: "Station Gamma", status: "offline" }
+      ];
+      
+      setChargingStations(mockStations);
+      
+      // Mock robot data
+      const mockRobots = [
+        { id: 1, name: "Robot Alpha", battery: 85 },
+        { id: 2, name: "Robot Beta", battery: 92 },
+        { id: 3, name: "Robot Gamma", battery: 28 },
+        { id: 4, name: "Robot Delta", battery: 35 }
+      ];
+      
+      setRobots(mockRobots);
+      setLowBatteryRobots(mockRobots.filter(r => r.battery < 40));
+    } catch (error) {
+      toast.error("Failed to load charging data");
+      console.error("Error fetching charging data:", error);
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "available": return "bg-green-500";
+      case "charging": return "bg-blue-500";
+      case "offline": return "bg-red-500";
+      default: return "bg-gray-500";
+    }
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case "available": return "Available";
+      case "charging": return "Charging";
+      case "offline": return "Offline";
+      default: return "Unknown";
+    }
+  };
+
+  const handleSendToCharge = async (robotId: number) => {
+    try {
+      await robotService.requestManualCharging({ robot_id: `R${robotId}` });
+      toast.success(`Charging request sent for Robot ${robotId}`);
+    } catch (error) {
+      toast.error("Failed to send robot to charge");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-6">
@@ -79,8 +104,8 @@ export default function ChargingPage() {
             <p className="text-gray-600 mt-2">Monitor and control robot charging stations</p>
           </div>
           <div className="flex gap-2 mt-4 md:mt-0">
-            <Button
-              onClick={() => setIsChargingEnabled(!isChargingEnabled)}
+            <Button 
+              onClick={() => setIsChargingEnabled(!isChargingEnabled)} 
               className={isChargingEnabled ? "bg-red-500 hover:bg-red-600" : "bg-green-500 hover:bg-green-600"}
             >
               {isChargingEnabled ? (
@@ -95,7 +120,6 @@ export default function ChargingPage() {
             </Button>
           </div>
         </div>
-
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
           <div className="lg:col-span-1 bg-white p-6 rounded-lg border">
             <div className="flex items-center">
@@ -131,7 +155,6 @@ export default function ChargingPage() {
             </div>
           </div>
         </div>
-
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Charging Stations */}
           <div className="space-y-6">
@@ -168,7 +191,7 @@ export default function ChargingPage() {
                 </div>
               </CardContent>
             </Card>
-
+            
             {/* Low Battery Robots */}
             <Card>
               <CardHeader>
@@ -176,43 +199,36 @@ export default function ChargingPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between p-3 border rounded-lg">
-                    <div className="flex items-center space-x-3">
-                      <Battery className="h-5 w-5 text-red-500" />
-                      <div>
-                        <h3 className="font-medium">Robot Gamma</h3>
-                        <p className="text-sm text-gray-500">Table 3</p>
+                  {lowBatteryRobots.map((robot) => (
+                    <div key={robot.id} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div className="flex items-center space-x-3">
+                        <Battery className={`h-5 w-5 ${robot.battery < 30 ? "text-red-500" : "text-orange-500"}`} />
+                        <div>
+                          <h3 className="font-medium">{robot.name}</h3>
+                          <p className="text-sm text-gray-500">Table 3</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-4">
+                        <div className="text-right">
+                          <div className={`font-medium ${robot.battery < 30 ? "text-red-500" : "text-orange-500"}`}>
+                            {robot.battery}%
+                          </div>
+                          <div className="text-xs text-gray-500">Battery</div>
+                        </div>
+                        <Button 
+                          size="sm" 
+                          onClick={() => handleSendToCharge(robot.id)}
+                        >
+                          Send to Charge
+                        </Button>
                       </div>
                     </div>
-                    <div className="flex items-center space-x-4">
-                      <div className="text-right">
-                        <div className="font-medium text-red-500">28%</div>
-                        <div className="text-xs text-gray-500">Battery</div>
-                      </div>
-                      <Button size="sm">Send to Charge</Button>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between p-3 border rounded-lg">
-                    <div className="flex items-center space-x-3">
-                      <Battery className="h-5 w-5 text-orange-500" />
-                      <div>
-                        <h3 className="font-medium">Robot Delta</h3>
-                        <p className="text-sm text-gray-500">Table 7</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center space-x-4">
-                      <div className="text-right">
-                        <div className="font-medium text-orange-500">35%</div>
-                        <div className="text-xs text-gray-500">Battery</div>
-                      </div>
-                      <Button size="sm" variant="outline">Monitor</Button>
-                    </div>
-                  </div>
+                  ))}
                 </div>
               </CardContent>
             </Card>
           </div>
-
+          
           {/* Charging Details */}
           <div className="space-y-6">
             {/* Active Charging */}
@@ -252,7 +268,7 @@ export default function ChargingPage() {
                 </div>
               </CardContent>
             </Card>
-
+            
             {/* Charging Schedule */}
             <Card>
               <CardHeader>
@@ -284,7 +300,7 @@ export default function ChargingPage() {
                 </div>
               </CardContent>
             </Card>
-
+            
             {/* Charging Policies */}
             <Card>
               <CardHeader>

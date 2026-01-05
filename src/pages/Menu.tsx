@@ -1,5 +1,6 @@
 "use client";
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,10 +8,12 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Utensils, Plus, Edit, Trash2, Save, X } from "lucide-react";
 import { MadeWithDyad } from "@/components/made-with-dyad";
-import { initialMenuItems, MenuItem } from "@/lib/menu-data";
+import { menuService } from "@/lib/menu-service";
+import { MenuItem } from "@/lib/menu-data";
+import { toast } from "sonner";
 
 export default function MenuPage() {
-  const [menuItems, setMenuItems] = useState<MenuItem[]>(initialMenuItems);
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
   const [newItem, setNewItem] = useState<Omit<MenuItem, 'id'>>({
     name: "",
@@ -22,16 +25,33 @@ export default function MenuPage() {
     vegetarian: false
   });
 
+  useEffect(() => {
+    fetchMenuItems();
+  }, []);
+
+  const fetchMenuItems = () => {
+    try {
+      const menuData = menuService.getMenuItems();
+      setMenuItems(menuData);
+    } catch (error) {
+      toast.error("Failed to load menu items");
+      console.error("Error fetching menu items:", error);
+    }
+  };
+
   const handleEdit = (item: MenuItem) => {
     setEditingItem(item);
   };
 
   const handleSave = () => {
     if (editingItem) {
-      setMenuItems(menuItems.map(item => 
-        item.id === editingItem.id ? editingItem : item
-      ));
-      setEditingItem(null);
+      try {
+        menuService.updateMenuItem(editingItem);
+        setEditingItem(null);
+        fetchMenuItems(); // Refresh the list
+      } catch (error) {
+        toast.error("Failed to save menu item");
+      }
     }
   };
 
@@ -40,24 +60,35 @@ export default function MenuPage() {
   };
 
   const handleDelete = (id: number) => {
-    setMenuItems(menuItems.filter(item => item.id !== id));
+    try {
+      menuService.deleteMenuItem(id);
+      fetchMenuItems(); // Refresh the list
+    } catch (error) {
+      toast.error("Failed to delete menu item");
+    }
   };
 
   const handleAddItem = () => {
-    const newItemWithId: MenuItem = {
-      ...newItem,
-      id: Math.max(0, ...menuItems.map(item => item.id)) + 1
-    };
-    setMenuItems([...menuItems, newItemWithId]);
-    setNewItem({
-      name: "",
-      description: "",
-      price: 0,
-      category: "",
-      subcategory: "",
-      popular: false,
-      vegetarian: false
-    });
+    if (!newItem.name || !newItem.category || newItem.price <= 0) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+    
+    try {
+      menuService.addMenuItem(newItem);
+      setNewItem({
+        name: "",
+        description: "",
+        price: 0,
+        category: "",
+        subcategory: "",
+        popular: false,
+        vegetarian: false
+      });
+      fetchMenuItems(); // Refresh the list
+    } catch (error) {
+      toast.error("Failed to add menu item");
+    }
   };
 
   const handleInputChange = (field: keyof MenuItem, value: string | number | boolean) => {
@@ -77,7 +108,6 @@ export default function MenuPage() {
           <h1 className="text-3xl font-bold text-gray-900">Menu Management</h1>
           <p className="text-gray-600 mt-2">Manage restaurant menu items for robot ordering system</p>
         </div>
-
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Menu Items List */}
           <div className="lg:col-span-2 space-y-6">
@@ -85,8 +115,7 @@ export default function MenuPage() {
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   <div className="flex items-center">
-                    <Utensils className="mr-2 h-5 w-5" />
-                    Menu Items
+                    <Utensils className="mr-2 h-5 w-5" /> Menu Items
                   </div>
                   <span className="text-sm font-normal text-gray-500">
                     {menuItems.length} items
@@ -102,80 +131,78 @@ export default function MenuPage() {
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-2">
                               <Label htmlFor={`name-${item.id}`}>Name</Label>
-                              <Input
-                                id={`name-${item.id}`}
-                                value={editingItem.name}
-                                onChange={(e) => handleInputChange("name", e.target.value)}
+                              <Input 
+                                id={`name-${item.id}`} 
+                                value={editingItem.name} 
+                                onChange={(e) => handleInputChange("name", e.target.value)} 
                               />
                             </div>
                             <div className="space-y-2">
                               <Label htmlFor={`price-${item.id}`}>Price ($)</Label>
-                              <Input
-                                id={`price-${item.id}`}
-                                type="number"
-                                step="0.01"
-                                value={editingItem.price}
-                                onChange={(e) => handleInputChange("price", parseFloat(e.target.value) || 0)}
+                              <Input 
+                                id={`price-${item.id}`} 
+                                type="number" 
+                                step="0.01" 
+                                value={editingItem.price} 
+                                onChange={(e) => handleInputChange("price", parseFloat(e.target.value) || 0)} 
                               />
                             </div>
                           </div>
                           <div className="space-y-2">
                             <Label htmlFor={`description-${item.id}`}>Description</Label>
-                            <Textarea
-                              id={`description-${item.id}`}
-                              value={editingItem.description}
-                              onChange={(e) => handleInputChange("description", e.target.value)}
-                              rows={2}
+                            <Textarea 
+                              id={`description-${item.id}`} 
+                              value={editingItem.description} 
+                              onChange={(e) => handleInputChange("description", e.target.value)} 
+                              rows={2} 
                             />
                           </div>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-2">
                               <Label htmlFor={`category-${item.id}`}>Category</Label>
-                              <Input
-                                id={`category-${item.id}`}
-                                value={editingItem.category}
-                                onChange={(e) => handleInputChange("category", e.target.value)}
+                              <Input 
+                                id={`category-${item.id}`} 
+                                value={editingItem.category} 
+                                onChange={(e) => handleInputChange("category", e.target.value)} 
                               />
                             </div>
                             <div className="space-y-2">
                               <Label htmlFor={`subcategory-${item.id}`}>Subcategory</Label>
-                              <Input
-                                id={`subcategory-${item.id}`}
-                                value={editingItem.subcategory}
-                                onChange={(e) => handleInputChange("subcategory", e.target.value)}
+                              <Input 
+                                id={`subcategory-${item.id}`} 
+                                value={editingItem.subcategory} 
+                                onChange={(e) => handleInputChange("subcategory", e.target.value)} 
                               />
                             </div>
                           </div>
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div className="flex items-center space-x-2">
-                              <input
-                                type="checkbox"
-                                id={`popular-${item.id}`}
-                                checked={editingItem.popular}
-                                onChange={(e) => handleInputChange("popular", e.target.checked)}
-                                className="h-4 w-4"
+                              <input 
+                                type="checkbox" 
+                                id={`popular-${item.id}`} 
+                                checked={editingItem.popular} 
+                                onChange={(e) => handleInputChange("popular", e.target.checked)} 
+                                className="h-4 w-4" 
                               />
                               <Label htmlFor={`popular-${item.id}`}>Popular Item</Label>
                             </div>
                             <div className="flex items-center space-x-2">
-                              <input
-                                type="checkbox"
-                                id={`vegetarian-${item.id}`}
-                                checked={editingItem.vegetarian}
-                                onChange={(e) => handleInputChange("vegetarian", e.target.checked)}
-                                className="h-4 w-4"
+                              <input 
+                                type="checkbox" 
+                                id={`vegetarian-${item.id}`} 
+                                checked={editingItem.vegetarian} 
+                                onChange={(e) => handleInputChange("vegetarian", e.target.checked)} 
+                                className="h-4 w-4" 
                               />
                               <Label htmlFor={`vegetarian-${item.id}`}>Vegetarian</Label>
                             </div>
                           </div>
                           <div className="flex justify-end space-x-2">
                             <Button variant="outline" onClick={handleCancel}>
-                              <X className="h-4 w-4 mr-2" />
-                              Cancel
+                              <X className="h-4 w-4 mr-2" /> Cancel
                             </Button>
                             <Button onClick={handleSave}>
-                              <Save className="h-4 w-4 mr-2" />
-                              Save
+                              <Save className="h-4 w-4 mr-2" /> Save
                             </Button>
                           </div>
                         </div>
@@ -220,96 +247,94 @@ export default function MenuPage() {
               </CardContent>
             </Card>
           </div>
-
+          
           {/* Add New Item */}
           <div className="space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
-                  <Plus className="mr-2 h-5 w-5" />
-                  Add New Item
+                  <Plus className="mr-2 h-5 w-5" /> Add New Item
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="new-name">Name</Label>
-                  <Input
-                    id="new-name"
-                    value={newItem.name}
-                    onChange={(e) => handleNewInputChange("name", e.target.value)}
-                    placeholder="e.g., Tom Yum Soup"
+                  <Input 
+                    id="new-name" 
+                    value={newItem.name} 
+                    onChange={(e) => handleNewInputChange("name", e.target.value)} 
+                    placeholder="e.g., Tom Yum Soup" 
                   />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="new-description">Description</Label>
-                  <Textarea
-                    id="new-description"
-                    value={newItem.description}
-                    onChange={(e) => handleNewInputChange("description", e.target.value)}
-                    placeholder="Describe the item..."
-                    rows={3}
+                  <Textarea 
+                    id="new-description" 
+                    value={newItem.description} 
+                    onChange={(e) => handleNewInputChange("description", e.target.value)} 
+                    placeholder="Describe the item..." 
+                    rows={3} 
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="new-price">Price ($)</Label>
-                    <Input
-                      id="new-price"
-                      type="number"
-                      step="0.01"
-                      value={newItem.price || ""}
-                      onChange={(e) => handleNewInputChange("price", parseFloat(e.target.value) || 0)}
-                      placeholder="0.00"
+                    <Input 
+                      id="new-price" 
+                      type="number" 
+                      step="0.01" 
+                      value={newItem.price || ""} 
+                      onChange={(e) => handleNewInputChange("price", parseFloat(e.target.value) || 0)} 
+                      placeholder="0.00" 
                     />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="new-category">Category</Label>
-                    <Input
-                      id="new-category"
-                      value={newItem.category}
-                      onChange={(e) => handleNewInputChange("category", e.target.value)}
-                      placeholder="e.g., Soups"
+                    <Input 
+                      id="new-category" 
+                      value={newItem.category} 
+                      onChange={(e) => handleNewInputChange("category", e.target.value)} 
+                      placeholder="e.g., Soups" 
                     />
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="new-subcategory">Subcategory</Label>
-                    <Input
-                      id="new-subcategory"
-                      value={newItem.subcategory}
-                      onChange={(e) => handleNewInputChange("subcategory", e.target.value)}
-                      placeholder="e.g., Spicy"
+                    <Input 
+                      id="new-subcategory" 
+                      value={newItem.subcategory} 
+                      onChange={(e) => handleNewInputChange("subcategory", e.target.value)} 
+                      placeholder="e.g., Spicy" 
                     />
                   </div>
                   <div className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      id="new-popular"
-                      checked={newItem.popular}
-                      onChange={(e) => handleNewInputChange("popular", e.target.checked)}
-                      className="h-4 w-4"
+                    <input 
+                      type="checkbox" 
+                      id="new-popular" 
+                      checked={newItem.popular} 
+                      onChange={(e) => handleNewInputChange("popular", e.target.checked)} 
+                      className="h-4 w-4" 
                     />
                     <Label htmlFor="new-popular">Popular Item</Label>
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id="new-vegetarian"
-                    checked={newItem.vegetarian}
-                    onChange={(e) => handleNewInputChange("vegetarian", e.target.checked)}
-                    className="h-4 w-4"
+                  <input 
+                    type="checkbox" 
+                    id="new-vegetarian" 
+                    checked={newItem.vegetarian} 
+                    onChange={(e) => handleNewInputChange("vegetarian", e.target.checked)} 
+                    className="h-4 w-4" 
                   />
                   <Label htmlFor="new-vegetarian">Vegetarian</Label>
                 </div>
                 <Button className="w-full" onClick={handleAddItem}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Item
+                  <Plus className="h-4 w-4 mr-2" /> Add Item
                 </Button>
               </CardContent>
             </Card>
-
+            
             {/* Menu Categories */}
             <Card>
               <CardHeader>
@@ -328,7 +353,7 @@ export default function MenuPage() {
                 </div>
               </CardContent>
             </Card>
-
+            
             {/* Menu Stats */}
             <Card>
               <CardHeader>
@@ -369,7 +394,6 @@ export default function MenuPage() {
             </Card>
           </div>
         </div>
-
         <MadeWithDyad />
       </div>
     </div>

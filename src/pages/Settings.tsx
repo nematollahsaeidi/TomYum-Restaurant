@@ -1,28 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { 
-  Settings, 
-  Save,
-  RotateCcw,
-  Bell,
-  Wifi,
-  Battery,
-  MapPin
-} from "lucide-react";
+import { Settings, Save, RotateCcw, Bell, Wifi, Battery, MapPin } from "lucide-react";
 import { MadeWithDyad } from "@/components/made-with-dyad";
 import { toast } from "sonner";
 
@@ -41,10 +27,12 @@ export default function SettingsPage() {
   });
 
   const handleSave = () => {
+    // In a real implementation, we would save to the backend
     toast.success("Settings saved successfully");
   };
 
   const handleReset = () => {
+    // In a real implementation, we would reset to defaults from the backend
     toast.info("Settings reset to defaults");
   };
 
@@ -59,27 +47,24 @@ export default function SettingsPage() {
           <h1 className="text-3xl font-bold text-gray-900">System Settings</h1>
           <p className="text-gray-600 mt-2">Configure robot behavior and system preferences</p>
         </div>
-
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
             {/* General Settings */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
-                  <Settings className="mr-2 h-5 w-5" />
-                  General Settings
+                  <Settings className="mr-2 h-5 w-5" /> General Settings
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-2">
                   <Label htmlFor="restaurantName">Restaurant Name</Label>
                   <Input 
-                    id="restaurantName"
-                    value={settings.restaurantName}
-                    onChange={(e) => handleChange("restaurantName", e.target.value)}
+                    id="restaurantName" 
+                    value={settings.restaurantName} 
+                    onChange={(e) => handleChange("restaurantName", e.target.value)} 
                   />
                 </div>
-                
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="maxRobots">Maximum Robots</Label>
@@ -99,7 +84,6 @@ export default function SettingsPage() {
                       </SelectContent>
                     </Select>
                   </div>
-                  
                   <div className="space-y-2">
                     <Label htmlFor="defaultPriority">Default Task Priority</Label>
                     <Select 
@@ -132,41 +116,38 @@ export default function SettingsPage() {
                     <p className="text-sm text-gray-500">Enable automatic charging when battery is low</p>
                   </div>
                   <Switch 
-                    checked={settings.autoCharging}
-                    onCheckedChange={(checked) => handleChange("autoCharging", checked)}
+                    checked={settings.autoCharging} 
+                    onCheckedChange={(checked) => handleChange("autoCharging", checked)} 
                   />
                 </div>
-                
                 <div className="space-y-2">
                   <Label htmlFor="batteryThreshold">Battery Threshold (%)</Label>
                   <Input 
-                    id="batteryThreshold"
-                    type="number"
-                    min="10"
-                    max="50"
-                    value={settings.batteryThreshold}
-                    onChange={(e) => handleChange("batteryThreshold", parseInt(e.target.value) || 30)}
+                    id="batteryThreshold" 
+                    type="number" 
+                    min="10" 
+                    max="50" 
+                    value={settings.batteryThreshold} 
+                    onChange={(e) => handleChange("batteryThreshold", parseInt(e.target.value) || 30)} 
                   />
                   <p className="text-sm text-gray-500">Robots will automatically charge when battery drops below this level</p>
                 </div>
-                
                 <div className="space-y-2">
                   <Label htmlFor="deliveryInstructions">Delivery Instructions</Label>
                   <Textarea 
-                    id="deliveryInstructions"
-                    value={settings.deliveryInstructions}
-                    onChange={(e) => handleChange("deliveryInstructions", e.target.value)}
-                    rows={3}
+                    id="deliveryInstructions" 
+                    value={settings.deliveryInstructions} 
+                    onChange={(e) => handleChange("deliveryInstructions", e.target.value)} 
+                    rows={3} 
                   />
                 </div>
-                
                 <div className="space-y-2">
                   <Label htmlFor="collectionInstructions">Collection Instructions</Label>
                   <Textarea 
-                    id="collectionInstructions"
-                    value={settings.collectionInstructions}
-                    onChange={(e) => handleChange("collectionInstructions", e.target.value)}
-                    rows={3}
+                    id="collectionInstructions" 
+                    value={settings.collectionInstructions} 
+                    onChange={(e) => handleChange("collectionInstructions", e.target.value)} 
+                    rows={3} 
                   />
                 </div>
               </CardContent>
@@ -176,27 +157,25 @@ export default function SettingsPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
-                  <Wifi className="mr-2 h-5 w-5" />
-                  Network Settings
+                  <Wifi className="mr-2 h-5 w-5" /> Network Settings
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="wifiNetwork">WiFi Network Name</Label>
                   <Input 
-                    id="wifiNetwork"
-                    value={settings.wifiNetwork}
-                    onChange={(e) => handleChange("wifiNetwork", e.target.value)}
+                    id="wifiNetwork" 
+                    value={settings.wifiNetwork} 
+                    onChange={(e) => handleChange("wifiNetwork", e.target.value)} 
                   />
                 </div>
-                
                 <div className="space-y-2">
                   <Label htmlFor="wifiPassword">WiFi Password</Label>
                   <Input 
-                    id="wifiPassword"
-                    type="password"
-                    value={settings.wifiPassword}
-                    onChange={(e) => handleChange("wifiPassword", e.target.value)}
+                    id="wifiPassword" 
+                    type="password" 
+                    value={settings.wifiPassword} 
+                    onChange={(e) => handleChange("wifiPassword", e.target.value)} 
                   />
                 </div>
               </CardContent>
@@ -211,29 +190,25 @@ export default function SettingsPage() {
               </CardHeader>
               <CardContent className="space-y-3">
                 <Button className="w-full" onClick={handleSave}>
-                  <Save className="mr-2 h-4 w-4" />
-                  Save Settings
+                  <Save className="mr-2 h-4 w-4" /> Save Settings
                 </Button>
                 <Button variant="outline" className="w-full" onClick={handleReset}>
-                  <RotateCcw className="mr-2 h-4 w-4" />
-                  Reset to Defaults
+                  <RotateCcw className="mr-2 h-4 w-4" /> Reset to Defaults
                 </Button>
               </CardContent>
             </Card>
-            
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
-                  <Bell className="mr-2 h-5 w-5" />
-                  Notifications
+                  <Bell className="mr-2 h-5 w-5" /> Notifications
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex items-center justify-between">
                   <Label>Email Notifications</Label>
                   <Switch 
-                    checked={settings.notifications}
-                    onCheckedChange={(checked) => handleChange("notifications", checked)}
+                    checked={settings.notifications} 
+                    onCheckedChange={(checked) => handleChange("notifications", checked)} 
                   />
                 </div>
                 <p className="text-sm text-gray-500 mt-2">
@@ -241,12 +216,10 @@ export default function SettingsPage() {
                 </p>
               </CardContent>
             </Card>
-            
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
-                  <MapPin className="mr-2 h-5 w-5" />
-                  Location
+                  <MapPin className="mr-2 h-5 w-5" /> Location
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -254,19 +227,15 @@ export default function SettingsPage() {
                   <div className="p-3 bg-blue-50 rounded-lg">
                     <div className="font-medium">Restaurant Address</div>
                     <div className="text-sm text-gray-600 mt-1">
-                      123 Thai Street<br />
-                      Bangkok, Thailand 10110
+                      123 Thai Street<br /> Bangkok, Thailand 10110
                     </div>
                   </div>
-                  <Button variant="outline" className="w-full">
-                    Update Location
-                  </Button>
+                  <Button variant="outline" className="w-full">Update Location</Button>
                 </div>
               </CardContent>
             </Card>
           </div>
         </div>
-
         <MadeWithDyad />
       </div>
     </div>

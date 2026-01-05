@@ -1,90 +1,37 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { 
-  Users,
-  Search,
-  Plus,
-  Edit,
-  Trash2,
-  Phone,
-  Mail,
-  Calendar,
-  Star
-} from "lucide-react";
+import { Users, Search, Plus, Edit, Trash2, Phone, Mail, Calendar, Star } from "lucide-react";
 import { MadeWithDyad } from "@/components/made-with-dyad";
-
-interface Customer {
-  id: number;
-  name: string;
-  email: string;
-  phone: string;
-  totalVisits: number;
-  totalSpent: number;
-  favoriteItems: string[];
-  lastVisit: string;
-  membership: "regular" | "premium" | "vip";
-}
-
-const initialCustomers: Customer[] = [
-  { 
-    id: 1, 
-    name: "John Smith", 
-    email: "john@example.com", 
-    phone: "(555) 123-4567", 
-    totalVisits: 15, 
-    totalSpent: 320.50, 
-    favoriteItems: ["Pad Thai", "Tom Yum Soup"], 
-    lastVisit: "2023-06-15",
-    membership: "premium"
-  },
-  { 
-    id: 2, 
-    name: "Sarah Johnson", 
-    email: "sarah@example.com", 
-    phone: "(555) 987-6543", 
-    totalVisits: 8, 
-    totalSpent: 180.25, 
-    favoriteItems: ["Green Curry", "Spring Rolls"], 
-    lastVisit: "2023-06-10",
-    membership: "regular"
-  },
-  { 
-    id: 3, 
-    name: "Michael Chen", 
-    email: "michael@example.com", 
-    phone: "(555) 456-7890", 
-    totalVisits: 22, 
-    totalSpent: 540.75, 
-    favoriteItems: ["Massaman Curry", "Mango Sticky Rice"], 
-    lastVisit: "2023-06-18",
-    membership: "vip"
-  },
-  { 
-    id: 4, 
-    name: "Emily Davis", 
-    email: "emily@example.com", 
-    phone: "(555) 234-5678", 
-    totalVisits: 5, 
-    totalSpent: 110.00, 
-    favoriteItems: ["Tom Yum Soup", "Thai Iced Tea"], 
-    lastVisit: "2023-06-05",
-    membership: "regular"
-  },
-];
+import { customerService, Customer } from "@/lib/customer-service";
+import { toast } from "sonner";
 
 export default function CustomersPage() {
-  const [customers, setCustomers] = useState<Customer[]>(initialCustomers);
+  const [customers, setCustomers] = useState<Customer[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [newCustomer, setNewCustomer] = useState<Omit<Customer, 'id' | 'totalVisits' | 'totalSpent' | 'favoriteItems' | 'lastVisit' | 'membership'>>({ 
-    name: "", 
-    email: "", 
-    phone: "" 
+  const [newCustomer, setNewCustomer] = useState<Omit<Customer, 'id' | 'totalVisits' | 'totalSpent' | 'favoriteItems' | 'lastVisit' | 'membership'>>({
+    name: "",
+    email: "",
+    phone: ""
   });
+
+  useEffect(() => {
+    fetchCustomers();
+  }, []);
+
+  const fetchCustomers = () => {
+    try {
+      const customerData = customerService.getCustomers();
+      setCustomers(customerData);
+    } catch (error) {
+      toast.error("Failed to load customers");
+      console.error("Error fetching customers:", error);
+    }
+  };
 
   const filteredCustomers = customers.filter(customer => 
     customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -93,21 +40,27 @@ export default function CustomersPage() {
   );
 
   const handleAddCustomer = () => {
-    const customerWithDefaults: Customer = {
-      ...newCustomer,
-      id: Math.max(0, ...customers.map(c => c.id)) + 1,
-      totalVisits: 0,
-      totalSpent: 0,
-      favoriteItems: [],
-      lastVisit: new Date().toISOString().split('T')[0],
-      membership: "regular"
-    };
-    setCustomers([...customers, customerWithDefaults]);
-    setNewCustomer({ name: "", email: "", phone: "" });
+    if (!newCustomer.name || !newCustomer.email || !newCustomer.phone) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+    
+    try {
+      customerService.addCustomer(newCustomer);
+      setNewCustomer({ name: "", email: "", phone: "" });
+      fetchCustomers(); // Refresh the list
+    } catch (error) {
+      toast.error("Failed to add customer");
+    }
   };
 
   const handleDeleteCustomer = (id: number) => {
-    setCustomers(customers.filter(customer => customer.id !== id));
+    try {
+      customerService.deleteCustomer(id);
+      fetchCustomers(); // Refresh the list
+    } catch (error) {
+      toast.error("Failed to delete customer");
+    }
   };
 
   const getMembershipColor = (membership: string) => {
@@ -125,7 +78,6 @@ export default function CustomersPage() {
           <h1 className="text-3xl font-bold text-gray-900">Customer Management</h1>
           <p className="text-gray-600 mt-2">Manage customer information and preferences</p>
         </div>
-
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Customer List */}
           <div className="lg:col-span-2 space-y-6">
@@ -133,8 +85,7 @@ export default function CustomersPage() {
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   <div className="flex items-center">
-                    <Users className="mr-2 h-5 w-5" />
-                    Customer List
+                    <Users className="mr-2 h-5 w-5" /> Customer List
                   </div>
                   <span className="text-sm font-normal text-gray-500">
                     {customers.length} customers
@@ -145,15 +96,14 @@ export default function CustomersPage() {
                 <div className="mb-4">
                   <div className="relative">
                     <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                    <Input
-                      placeholder="Search customers..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10"
+                    <Input 
+                      placeholder="Search customers..." 
+                      value={searchTerm} 
+                      onChange={(e) => setSearchTerm(e.target.value)} 
+                      className="pl-10" 
                     />
                   </div>
                 </div>
-                
                 <div className="space-y-4">
                   {filteredCustomers.map((customer) => (
                     <div key={customer.id} className="p-4 border rounded-lg hover:bg-gray-50">
@@ -198,7 +148,7 @@ export default function CustomersPage() {
                           </Button>
                           <Button 
                             variant="outline" 
-                            size="sm"
+                            size="sm" 
                             onClick={() => handleDeleteCustomer(customer.id)}
                           >
                             <Trash2 className="h-4 w-4" />
@@ -217,45 +167,40 @@ export default function CustomersPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
-                  <Plus className="mr-2 h-5 w-5" />
-                  Add New Customer
+                  <Plus className="mr-2 h-5 w-5" /> Add New Customer
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="name">Full Name</Label>
-                  <Input
-                    id="name"
-                    value={newCustomer.name}
-                    onChange={(e) => setNewCustomer({...newCustomer, name: e.target.value})}
-                    placeholder="e.g., John Smith"
+                  <Input 
+                    id="name" 
+                    value={newCustomer.name} 
+                    onChange={(e) => setNewCustomer({...newCustomer, name: e.target.value})} 
+                    placeholder="e.g., John Smith" 
                   />
                 </div>
-                
                 <div className="space-y-2">
                   <Label htmlFor="email">Email Address</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={newCustomer.email}
-                    onChange={(e) => setNewCustomer({...newCustomer, email: e.target.value})}
-                    placeholder="e.g., john@example.com"
+                  <Input 
+                    id="email" 
+                    type="email" 
+                    value={newCustomer.email} 
+                    onChange={(e) => setNewCustomer({...newCustomer, email: e.target.value})} 
+                    placeholder="e.g., john@example.com" 
                   />
                 </div>
-                
                 <div className="space-y-2">
                   <Label htmlFor="phone">Phone Number</Label>
-                  <Input
-                    id="phone"
-                    value={newCustomer.phone}
-                    onChange={(e) => setNewCustomer({...newCustomer, phone: e.target.value})}
-                    placeholder="e.g., (555) 123-4567"
+                  <Input 
+                    id="phone" 
+                    value={newCustomer.phone} 
+                    onChange={(e) => setNewCustomer({...newCustomer, phone: e.target.value})} 
+                    placeholder="e.g., (555) 123-4567" 
                   />
                 </div>
-                
                 <Button className="w-full" onClick={handleAddCustomer}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Customer
+                  <Plus className="h-4 w-4 mr-2" /> Add Customer
                 </Button>
               </CardContent>
             </Card>
@@ -271,21 +216,18 @@ export default function CustomersPage() {
                     <div className="text-2xl font-bold">{customers.length}</div>
                     <div className="text-sm text-gray-600">Total Customers</div>
                   </div>
-                  
                   <div className="p-3 bg-green-50 rounded-lg">
                     <div className="text-2xl font-bold">
                       {customers.filter(c => c.membership === "vip").length}
                     </div>
                     <div className="text-sm text-gray-600">VIP Members</div>
                   </div>
-                  
                   <div className="p-3 bg-purple-50 rounded-lg">
                     <div className="text-2xl font-bold">
                       ${(customers.reduce((sum, c) => sum + c.totalSpent, 0) / customers.length || 0).toFixed(2)}
                     </div>
                     <div className="text-sm text-gray-600">Avg. Spend per Customer</div>
                   </div>
-                  
                   <div className="p-3 bg-orange-50 rounded-lg">
                     <div className="text-2xl font-bold">
                       {Math.round(customers.reduce((sum, c) => sum + c.totalVisits, 0) / customers.length || 0)}
@@ -326,7 +268,6 @@ export default function CustomersPage() {
             </Card>
           </div>
         </div>
-
         <MadeWithDyad />
       </div>
     </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,31 +9,32 @@ import {
   Package, 
   CreditCard, 
   BatteryCharging, 
-  AlertTriangle,
-  ArrowUp,
-  ArrowDown,
-  AlertCircle
+  AlertTriangle, 
+  ArrowUp, 
+  ArrowDown, 
+  AlertCircle 
 } from "lucide-react";
+import { taskService } from "@/lib/task-service";
+import { queueService } from "@/lib/queue-service";
+import { toast } from "sonner";
 
 interface Task {
-  id: number;
+  id: string;
   type: "ordering" | "delivery" | "collection" | "payment" | "charging";
   priority: "high" | "medium" | "low" | "dynamic";
-  status: "queued" | "in-progress" | "completed";
+  state: "WAITING" | "READY" | "CLAIMED" | "RUNNING" | "PAUSED" | "DONE";
   table: string;
   time: string;
-  effectivePriority: number;
+  effective_priority: number;
+  base_priority: number;
+  operator_override: number;
+  waypoints: string[];
+  release_time: string;
+  deadline: string;
+  assigned_robot: string | null;
+  created_at: string;
+  updated_at: string;
 }
-
-const mockTasks: Task[] = [
-  { id: 1, type: "delivery", priority: "high", status: "in-progress", table: "Table 5", time: "2 min", effectivePriority: 95 },
-  { id: 2, type: "collection", priority: "medium", status: "queued", table: "Table 3", time: "5 min", effectivePriority: 75 },
-  { id: 3, type: "ordering", priority: "medium", status: "queued", table: "Table 7", time: "8 min", effectivePriority: 70 },
-  { id: 4, type: "payment", priority: "low", status: "queued", table: "Table 2", time: "12 min", effectivePriority: 50 },
-  { id: 5, type: "charging", priority: "dynamic", status: "queued", table: "Charging Station", time: "15 min", effectivePriority: 40 },
-  { id: 6, type: "ordering", priority: "medium", status: "queued", table: "Table 9", time: "10 min", effectivePriority: 65 },
-  { id: 7, type: "delivery", priority: "high", status: "queued", table: "Table 1", time: "3 min", effectivePriority: 90 },
-];
 
 const getTaskIcon = (type: string) => {
   switch (type) {
@@ -57,40 +58,79 @@ const getPriorityColor = (priority: string) => {
 };
 
 export function TaskQueue() {
-  const [tasks, setTasks] = useState<Task[]>(mockTasks);
-  const [selectedTask, setSelectedTask] = useState<number | null>(null);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [selectedTask, setSelectedTask] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const moveTaskUp = (id: number) => {
-    setTasks(prev => {
-      const index = prev.findIndex(task => task.id === id);
-      if (index <= 0) return prev;
-      
-      const newTasks = [...prev];
-      [newTasks[index - 1], newTasks[index]] = [newTasks[index], newTasks[index - 1]];
-      return newTasks;
-    });
+  useEffect(() => {
+    fetchTasks();
+  }, []);
+
+  const fetchTasks = async () => {
+    try {
+      setLoading(true);
+      const taskData = await queueService.getQueueTasks();
+      // Convert backend task format to frontend format
+      const convertedTasks = taskData.map((task: any) => ({
+        ...task,
+        priority: task.operator_override > 30 ? "high" : 
+                  task.effective_priority > 80 ? "high" : 
+                  task.effective_priority > 60 ? "medium" : "low"
+      }));
+      setTasks(convertedTasks);
+    } catch (error) {
+      toast.error("Failed to load tasks");
+      console.error("Error fetching tasks:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const moveTaskDown = (id: number) => {
-    setTasks(prev => {
-      const index = prev.findIndex(task => task.id === id);
-      if (index === -1 || index === prev.length - 1) return prev;
-      
-      const newTasks = [...prev];
-      [newTasks[index], newTasks[index + 1]] = [newTasks[index + 1], newTasks[index]];
-      return newTasks;
-    });
+  const moveTaskUp = async (id: string) => {
+    try {
+      const updatedTasks = taskService.moveTaskUp(tasks, id);
+      setTasks(updatedTasks);
+      toast.success("Task moved up in queue");
+    } catch (error) {
+      toast.error("Failed to move task");
+    }
   };
 
-  const markAsCritical = (id: number) => {
-    setTasks(prev => 
-      prev.map(task => 
-        task.id === id 
-          ? { ...task, priority: "high", effectivePriority: 100 } 
-          : task
-      )
+  const moveTaskDown = async (id: string) => {
+    try {
+      const updatedTasks = taskService.moveTaskDown(tasks, id);
+      setTasks(updatedTasks);
+      toast.success("Task moved down in queue");
+    } catch (error) {
+      toast.error("Failed to move task");
+    }
+  };
+
+  const markAsCritical = async (id: string) => {
+    try {
+      await taskService.markAsCritical(id);
+      toast.success("Task marked as critical");
+      // Refresh tasks to show updated priority
+      fetchTasks();
+    } catch (error) {
+      toast.error("Failed to mark task as critical");
+    }
+  };
+
+  if (loading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Task Queue Management</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex justify-center items-center h-32">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+          </div>
+        </CardContent>
+      </Card>
     );
-  };
+  }
 
   return (
     <Card>
@@ -119,24 +159,20 @@ export function TaskQueue() {
                   <p className="text-sm text-gray-500">{task.table}</p>
                 </div>
               </div>
-              
               <div className="flex items-center space-x-4">
                 <div className="hidden md:block">
                   <Badge variant="outline" className="capitalize">
                     {task.priority}
                   </Badge>
                 </div>
-                
                 <div className="text-right hidden sm:block">
                   <div className="font-medium">{task.time}</div>
                   <div className="text-xs text-gray-500">ETA</div>
                 </div>
-                
                 <div className="text-right">
-                  <div className="font-medium text-sm">P{task.effectivePriority}</div>
+                  <div className="font-medium text-sm">P{task.effective_priority}</div>
                   <div className="text-xs text-gray-500">Priority</div>
                 </div>
-                
                 <div className="flex flex-col space-y-1">
                   <Button 
                     size="icon" 
@@ -163,7 +199,6 @@ export function TaskQueue() {
                     <ArrowDown className="h-3 w-3" />
                   </Button>
                 </div>
-                
                 <Button 
                   size="sm" 
                   variant="outline" 
@@ -173,14 +208,12 @@ export function TaskQueue() {
                     markAsCritical(task.id);
                   }}
                 >
-                  <AlertCircle className="h-3 w-3 mr-1" />
-                  Critical
+                  <AlertCircle className="h-3 w-3 mr-1" /> Critical
                 </Button>
               </div>
             </div>
           ))}
         </div>
-        
         <div className="mt-6 p-4 bg-blue-50 rounded-lg">
           <h4 className="font-medium text-blue-900 mb-2">Queue Management Guide</h4>
           <ul className="text-sm text-blue-800 list-disc pl-5 space-y-1">

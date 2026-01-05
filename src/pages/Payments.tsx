@@ -1,100 +1,39 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { 
-  CreditCard,
-  Search,
-  Filter,
-  Download,
-  Eye,
-  CheckCircle,
-  Clock,
-  XCircle,
-  DollarSign
-} from "lucide-react";
+import { CreditCard, Search, Filter, Download, Eye, CheckCircle, Clock, XCircle, DollarSign } from "lucide-react";
 import { MadeWithDyad } from "@/components/made-with-dyad";
-
-interface Payment {
-  id: string;
-  customer: string;
-  table: string;
-  amount: number;
-  method: "credit" | "cash" | "mobile";
-  status: "completed" | "pending" | "failed";
-  timestamp: string;
-  items: string[];
-}
-
-const initialPayments: Payment[] = [
-  { 
-    id: "TXN-001", 
-    customer: "John Smith", 
-    table: "Table 5", 
-    amount: 42.50, 
-    method: "credit", 
-    status: "completed", 
-    timestamp: "2023-06-18 19:30:22",
-    items: ["Pad Thai", "Tom Yum Soup", "Thai Iced Tea"]
-  },
-  { 
-    id: "TXN-002", 
-    customer: "Sarah Johnson", 
-    table: "Table 3", 
-    amount: 28.75, 
-    method: "cash", 
-    status: "completed", 
-    timestamp: "2023-06-18 18:45:10",
-    items: ["Green Curry", "Spring Rolls"]
-  },
-  { 
-    id: "TXN-003", 
-    customer: "Michael Chen", 
-    table: "Table 7", 
-    amount: 65.20, 
-    method: "mobile", 
-    status: "pending", 
-    timestamp: "2023-06-18 20:15:33",
-    items: ["Massaman Curry", "Mango Sticky Rice", "Coconut Water"]
-  },
-  { 
-    id: "TXN-004", 
-    customer: "Emily Davis", 
-    table: "Table 2", 
-    amount: 19.95, 
-    method: "credit", 
-    status: "completed", 
-    timestamp: "2023-06-18 17:50:45",
-    items: ["Tom Yum Soup", "Thai Iced Tea"]
-  },
-  { 
-    id: "TXN-005", 
-    customer: "Robert Wilson", 
-    table: "Table 9", 
-    amount: 52.30, 
-    method: "credit", 
-    status: "failed", 
-    timestamp: "2023-06-18 20:05:17",
-    items: ["Pad Thai", "Green Curry", "Coconut Water"]
-  },
-];
+import { paymentService, Payment } from "@/lib/payment-service";
+import { toast } from "sonner";
 
 export default function PaymentsPage() {
-  const [payments, setPayments] = useState<Payment[]>(initialPayments);
+  const [payments, setPayments] = useState<Payment[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState<"all" | "completed" | "pending" | "failed">("all");
 
+  useEffect(() => {
+    fetchPayments();
+  }, []);
+
+  const fetchPayments = () => {
+    try {
+      const paymentData = paymentService.getPayments();
+      setPayments(paymentData);
+    } catch (error) {
+      toast.error("Failed to load payments");
+      console.error("Error fetching payments:", error);
+    }
+  };
+
   const filteredPayments = payments.filter(payment => {
-    const matchesSearch = 
-      payment.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const matchesSearch = payment.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
       payment.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
       payment.table.toLowerCase().includes(searchTerm.toLowerCase());
-    
     const matchesFilter = filterStatus === "all" || payment.status === filterStatus;
-    
     return matchesSearch && matchesFilter;
   });
 
@@ -137,7 +76,7 @@ export default function PaymentsPage() {
   const totalRevenue = payments
     .filter(p => p.status === "completed")
     .reduce((sum, payment) => sum + payment.amount, 0);
-
+    
   const pendingPayments = payments.filter(p => p.status === "pending").length;
   const failedPayments = payments.filter(p => p.status === "failed").length;
 
@@ -151,16 +90,13 @@ export default function PaymentsPage() {
           </div>
           <div className="flex gap-2 mt-4 md:mt-0">
             <Button variant="outline">
-              <Filter className="h-4 w-4 mr-2" />
-              Filter
+              <Filter className="h-4 w-4 mr-2" /> Filter
             </Button>
             <Button variant="outline">
-              <Download className="h-4 w-4 mr-2" />
-              Export
+              <Download className="h-4 w-4 mr-2" /> Export
             </Button>
           </div>
         </div>
-
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
           <div className="md:col-span-1 bg-white p-6 rounded-lg border">
             <div className="flex items-center">
@@ -173,7 +109,6 @@ export default function PaymentsPage() {
               </div>
             </div>
           </div>
-          
           <div className="md:col-span-1 bg-white p-6 rounded-lg border">
             <div className="flex items-center">
               <div className="p-3 bg-blue-100 rounded-full mr-4">
@@ -187,7 +122,6 @@ export default function PaymentsPage() {
               </div>
             </div>
           </div>
-          
           <div className="md:col-span-1 bg-white p-6 rounded-lg border">
             <div className="flex items-center">
               <div className="p-3 bg-yellow-100 rounded-full mr-4">
@@ -199,7 +133,6 @@ export default function PaymentsPage() {
               </div>
             </div>
           </div>
-          
           <div className="md:col-span-1 bg-white p-6 rounded-lg border">
             <div className="flex items-center">
               <div className="p-3 bg-red-100 rounded-full mr-4">
@@ -212,7 +145,6 @@ export default function PaymentsPage() {
             </div>
           </div>
         </div>
-
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Payment List */}
           <div className="lg:col-span-2 space-y-6">
@@ -220,8 +152,7 @@ export default function PaymentsPage() {
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   <div className="flex items-center">
-                    <CreditCard className="mr-2 h-5 w-5" />
-                    Recent Payments
+                    <CreditCard className="mr-2 h-5 w-5" /> Recent Payments
                   </div>
                   <span className="text-sm font-normal text-gray-500">
                     {filteredPayments.length} transactions
@@ -232,16 +163,16 @@ export default function PaymentsPage() {
                 <div className="mb-4 flex flex-col sm:flex-row gap-3">
                   <div className="relative flex-1">
                     <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                    <Input
-                      placeholder="Search payments..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10"
+                    <Input 
+                      placeholder="Search payments..." 
+                      value={searchTerm} 
+                      onChange={(e) => setSearchTerm(e.target.value)} 
+                      className="pl-10" 
                     />
                   </div>
                   <div>
-                    <select
-                      value={filterStatus}
+                    <select 
+                      value={filterStatus} 
                       onChange={(e) => setFilterStatus(e.target.value as any)}
                       className="block w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                     >
@@ -252,7 +183,6 @@ export default function PaymentsPage() {
                     </select>
                   </div>
                 </div>
-                
                 <div className="space-y-4">
                   {filteredPayments.map((payment) => (
                     <div key={payment.id} className="p-4 border rounded-lg hover:bg-gray-50">
@@ -307,16 +237,13 @@ export default function PaymentsPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <Button className="w-full">
-                  <CreditCard className="h-4 w-4 mr-2" />
-                  Process New Payment
+                  <CreditCard className="h-4 w-4 mr-2" /> Process New Payment
                 </Button>
                 <Button variant="outline" className="w-full">
-                  <Clock className="h-4 w-4 mr-2" />
-                  View Pending Payments
+                  <Clock className="h-4 w-4 mr-2" /> View Pending Payments
                 </Button>
                 <Button variant="outline" className="w-full">
-                  <XCircle className="h-4 w-4 mr-2" />
-                  Resolve Failed Payments
+                  <XCircle className="h-4 w-4 mr-2" /> Resolve Failed Payments
                 </Button>
               </CardContent>
             </Card>
@@ -392,7 +319,6 @@ export default function PaymentsPage() {
             </Card>
           </div>
         </div>
-
         <MadeWithDyad />
       </div>
     </div>
