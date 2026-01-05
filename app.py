@@ -343,18 +343,6 @@ async def read_reports():
 async def read_analytics():
     return get_html_content("reports.html")
 
-# Catch-all route for SPA routing
-@app.get("/{full_path:path}", response_class=HTMLResponse)
-async def serve_spa(full_path: str):
-    # Try to serve the specific file first
-    if full_path and full_path != "/":
-        try:
-            return get_html_content(f"{full_path}.html")
-        except:
-            pass
-    # If not found, serve index.html for SPA routing
-    return get_html_content("index.html")
-
 # Authentication endpoints
 @app.post("/api/auth/login", response_model=Token)
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
