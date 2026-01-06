@@ -29,10 +29,10 @@ export default function RobotsPage() {
       const total = robots.length;
       const operational = robots.filter((r: any) => r.status !== "ERROR").length;
       const maintenance = robots.filter((r: any) => r.status === "ERROR").length;
-      
+
       const totalBattery = robots.reduce((sum: number, robot: any) => sum + robot.battery_level, 0);
       const avgBattery = robots.length ? Math.round(totalBattery / robots.length) : 0;
-      
+
       setRobotStats({ total, operational, maintenance, avgBattery });
     } catch (error) {
       toast.error("Failed to load robot statistics");
@@ -49,8 +49,8 @@ export default function RobotsPage() {
             <p className="text-gray-600 mt-2">Monitor and control all delivery robots</p>
           </div>
           <div className="flex flex-wrap gap-2 mt-4 md:mt-0">
-            <Button 
-              onClick={() => setIsSystemRunning(!isSystemRunning)} 
+            <Button
+              onClick={() => setIsSystemRunning(!isSystemRunning)}
               className={isSystemRunning ? "bg-red-500 hover:bg-red-600" : "bg-green-500 hover:bg-green-600"}
             >
               {isSystemRunning ? (
