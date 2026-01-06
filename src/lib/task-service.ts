@@ -4,6 +4,9 @@ import { toast } from 'sonner';
 export interface Task {
   id: string;
   type: 'ordering' | 'delivery' | 'collection' | 'payment' | 'charging';
+  priority: 'high' | 'medium' | 'low' | 'dynamic';
+  table: string;
+  time: string;
   base_priority: number;
   release_time: string;
   deadline: string;

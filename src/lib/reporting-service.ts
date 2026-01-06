@@ -8,6 +8,7 @@ export interface DailyReport {
   failed_tasks: number;
   avg_completion_time: string;
   robot_utilization: string;
+  system_health: number;
 }
 
 export interface TaskStatistics {

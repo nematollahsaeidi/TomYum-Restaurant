@@ -18,23 +18,7 @@ import { taskService } from "@/lib/task-service";
 import { queueService } from "@/lib/queue-service";
 import { toast } from "sonner";
 
-interface Task {
-  id: string;
-  type: "ordering" | "delivery" | "collection" | "payment" | "charging";
-  priority: "high" | "medium" | "low" | "dynamic";
-  state: "WAITING" | "READY" | "CLAIMED" | "RUNNING" | "PAUSED" | "DONE";
-  table: string;
-  time: string;
-  effective_priority: number;
-  base_priority: number;
-  operator_override: number;
-  waypoints: string[];
-  release_time: string;
-  deadline: string;
-  assigned_robot: string | null;
-  created_at: string;
-  updated_at: string;
-}
+import { Task } from "@/lib/task-service";
 
 const getTaskIcon = (type: string) => {
   switch (type) {
