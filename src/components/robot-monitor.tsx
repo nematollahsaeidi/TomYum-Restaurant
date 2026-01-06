@@ -11,7 +11,7 @@ import { toast } from "sonner";
 interface Robot {
   id: string;
   name: string;
-  status: "IDLE" | "MOVING" | "CHARGING" | "ERROR";
+  status: "IDLE" | "MOVING" | "CHARGING" | "ERROR" | "COLLECTING";
   battery_level: number;
   current_location: string;
   last_task: string;
@@ -46,7 +46,7 @@ export function RobotMonitor() {
 
   useEffect(() => {
     fetchRobots();
-    
+
     // Refresh robot data every 30 seconds
     const interval = setInterval(fetchRobots, 30000);
     return () => clearInterval(interval);
