@@ -1,5 +1,4 @@
 "use client";
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,15 +8,12 @@ import { Users, Search, Plus, Edit, Trash2, Phone, Mail, Calendar, Star } from "
 import { MadeWithDyad } from "@/components/made-with-dyad";
 import { customerService, Customer } from "@/lib/customer-service";
 import { toast } from "sonner";
+import { externalApiService } from "@/lib/external-api-service";
 
 export default function CustomersPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [newCustomer, setNewCustomer] = useState<Omit<Customer, 'id' | 'totalVisits' | 'totalSpent' | 'favoriteItems' | 'lastVisit' | 'membership'>>({
-    name: "",
-    email: "",
-    phone: ""
-  });
+  const [newCustomer, setNewCustomer] = useState<Omit<Customer, 'id' | 'totalVisits' | 'totalSpent' | 'favoriteItems' | 'lastVisit' | 'membership'>>({ name: "", email: "", phone: "" });
 
   useEffect(() => {
     // Initialize with some mock customers
@@ -56,7 +52,6 @@ export default function CustomersPage() {
         membership: "vip"
       }
     ];
-
     setCustomers(mockCustomers);
   }, []);
 
@@ -66,13 +61,14 @@ export default function CustomersPage() {
     customer.phone.includes(searchTerm)
   );
 
-  const handleAddCustomer = () => {
+  const handleAddCustomer = async () => {
     if (!newCustomer.name || !newCustomer.email || !newCustomer.phone) {
       toast.error("Please fill in all required fields");
       return;
     }
 
     try {
+      // Add customer to local storage
       const newCustomerWithDefaults: Customer = {
         ...newCustomer,
         id: Math.max(0, ...customers.map(c => c.id)) + 1,
@@ -83,6 +79,10 @@ export default function CustomersPage() {
         membership: 'regular'
       };
 
+      // Send customer data to external API (with all required fields)
+      await externalApiService.createCustomer(newCustomerWithDefaults);
+
+      // Update local state
       setCustomers([...customers, newCustomerWithDefaults]);
       setNewCustomer({ name: "", email: "", phone: "" });
       toast.success('Customer added successfully');
@@ -102,9 +102,12 @@ export default function CustomersPage() {
 
   const getMembershipColor = (membership: string) => {
     switch (membership) {
-      case "vip": return "bg-purple-100 text-purple-800";
-      case "premium": return "bg-blue-100 text-blue-800";
-      default: return "bg-gray-100 text-gray-800";
+      case "vip":
+        return "bg-purple-100 text-purple-800";
+      case "premium":
+        return "bg-blue-100 text-blue-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
@@ -122,7 +125,8 @@ export default function CustomersPage() {
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   <div className="flex items-center">
-                    <Users className="mr-2 h-5 w-5" /> Customer List
+                    <Users className="mr-2 h-5 w-5" />
+                    Customer List
                   </div>
                   <span className="text-sm font-normal text-gray-500">
                     {customers.length} customers
@@ -183,11 +187,7 @@ export default function CustomersPage() {
                           <Button variant="outline" size="sm">
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleDeleteCustomer(customer.id)}
-                          >
+                          <Button variant="outline" size="sm" onClick={() => handleDeleteCustomer(customer.id)}>
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
@@ -198,13 +198,13 @@ export default function CustomersPage() {
               </CardContent>
             </Card>
           </div>
-
           {/* Add New Customer */}
           <div className="space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center">
-                  <Plus className="mr-2 h-5 w-5" /> Add New Customer
+                  <Plus className="mr-2 h-5 w-5" />
+                  Add New Customer
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -213,7 +213,7 @@ export default function CustomersPage() {
                   <Input
                     id="name"
                     value={newCustomer.name}
-                    onChange={(e) => setNewCustomer({...newCustomer, name: e.target.value})}
+                    onChange={(e) => setNewCustomer({ ...newCustomer, name: e.target.value })}
                     placeholder="e.g., John Smith"
                   />
                 </div>
@@ -223,7 +223,7 @@ export default function CustomersPage() {
                     id="email"
                     type="email"
                     value={newCustomer.email}
-                    onChange={(e) => setNewCustomer({...newCustomer, email: e.target.value})}
+                    onChange={(e) => setNewCustomer({ ...newCustomer, email: e.target.value })}
                     placeholder="e.g., john@example.com"
                   />
                 </div>
@@ -232,16 +232,16 @@ export default function CustomersPage() {
                   <Input
                     id="phone"
                     value={newCustomer.phone}
-                    onChange={(e) => setNewCustomer({...newCustomer, phone: e.target.value})}
+                    onChange={(e) => setNewCustomer({ ...newCustomer, phone: e.target.value })}
                     placeholder="e.g., (555) 123-4567"
                   />
                 </div>
                 <Button className="w-full" onClick={handleAddCustomer}>
-                  <Plus className="h-4 w-4 mr-2" /> Add Customer
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Customer
                 </Button>
               </CardContent>
             </Card>
-
             {/* Customer Statistics */}
             <Card>
               <CardHeader>
@@ -274,7 +274,6 @@ export default function CustomersPage() {
                 </div>
               </CardContent>
             </Card>
-
             {/* Membership Tiers */}
             <Card>
               <CardHeader>
